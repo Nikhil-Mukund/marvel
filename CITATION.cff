@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+
+title: "MARVEL: Multi-Agent Research Validator & Enabler using LLMs"
+version: "v1.0.0"
+date-released: 2025-01-01
+
+authors:
+  - family-names: Mukund
+    given-names: Nikhil
+    affiliation: MIT Kavli Institute for Astrophysics and Space Research
+    orcid: https://orcid.org/0000-0002-8666-9156
+
+repository-code: https://github.com/Nikhil-Mukund/marvel
+license: Apache-2.0
+
+keywords:
+  - scientific assistants
+  - astrophysics
+  - gravitational wave detectors
+  - large language models  
+  - retrieval-augmented generation
+
