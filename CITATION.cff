@@ -5,13 +5,26 @@ title: "MARVEL: Multi-Agent Research Validator & Enabler using LLMs"
 version: "v1.0.0"
 date-released: 2025-01-01
 
+# Version-specific DOI (recommended as the primary DOI for reproducible citation)
+doi: 10.5281/zenodo.18156827
+
 authors:
   - family-names: Mukund
     given-names: Nikhil
     affiliation: MIT Kavli Institute for Astrophysics and Space Research
-    orcid: https://orcid.org/0000-0002-8666-9156
+    orcid: "https://orcid.org/0000-0002-8666-9156"
 
-repository-code: https://github.com/Nikhil-Mukund/marvel
+# Source code repository
+repository-code: "https://github.com/Nikhil-Mukund/marvel"
+# URL used by GitHub's citation rendering
+url: "https://github.com/Nikhil-Mukund/marvel"
+
+# Additional identifiers 
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.18156826
+    description: "Concept DOI (This DOI represents all versions of MARVEL on Zenodo, and will always resolve to the latest one.)"
+
 license: Apache-2.0
 
 keywords:
@@ -19,6 +32,5 @@ keywords:
   - astrophysics
   - gravitational wave detectors
   - LIGO
-  - large language models  
+  - large language models
   - retrieval-augmented generation
-
