@@ -1,6 +1,6 @@
 # MARVEL: A Multi‑Agent Research Validator and Enabler using LLMs
 
-MARVEL is a locally deployable, open‑source framework for domain‑aware question answering and assisted research. It combines a fast path for straightforward queries with a **DeepSearch** mode that integrates retrieval‑augmented generation (RAG) and Monte‑Carlo Tree Search to explore complementary sub‑queries and synthesise evidence without duplication. It draws on a curated semantic index of literature, internal/public documents, and (optionally) targeted web searches, with stable citation tracking throughout.
+MARVEL [ligogpt.mit.edu/marvel](ligogpt.mit.edu/marvel) is a locally deployable, open‑source framework for domain‑aware question answering and assisted research. It combines a fast path for straightforward queries with a **DeepSearch** mode that integrates retrieval‑augmented generation (RAG) and Monte‑Carlo Tree Search to explore complementary sub‑queries and synthesise evidence without duplication. It draws on a curated semantic index of literature, internal/public documents, and (optionally) targeted web searches, with stable citation tracking throughout.
 
 Developed by: Nikhil Mukund, Yifang Luo, Fan Zhang, Erik Katsavounidis and Lisa Barsotti, with support from the MIT Kavli Institute for Astrophysics and Space Research & LIGO Laboratory, and the NSF AI Institute for Artificial Intelligence and Fundamental Interactions.
 
