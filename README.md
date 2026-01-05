@@ -1,6 +1,10 @@
-# MARVEL: A Multi‑Agent Research Validator and Enabler using LLMs
+# MARVEL: A Multi-Agent Research Validator and Enabler using LLMs
 
-MARVEL [ligogpt.mit.edu/marvel](http://ligogpt.mit.edu/marvel) is a locally deployable, open‑source framework for domain‑aware question answering and assisted research. It combines a fast path for straightforward queries with a **DeepSearch** mode that integrates retrieval‑augmented generation (RAG) and Monte‑Carlo Tree Search to explore complementary sub‑queries and synthesise evidence without duplication. It draws on a curated semantic index of literature, internal/public documents, and (optionally) targeted web searches, with stable citation tracking throughout.
+[![DOI](https://zenodo.org/badge/1121643405.svg)](https://doi.org/10.5281/zenodo.18156826)
+
+MARVEL [ligogpt.mit.edu/marvel](https://ligogpt.mit.edu/marvel) is a locally deployable, open-source framework for domain-aware question answering and assisted research.
+
+It combines a fast path for straightforward queries with a **DeepSearch** mode that integrates retrieval‑augmented generation (RAG) and Monte‑Carlo Tree Search to explore complementary sub‑queries and synthesise evidence without duplication. It draws on a curated semantic index of literature, internal/public documents, and (optionally) targeted web searches, with stable citation tracking throughout.
 
 Developed by: Nikhil Mukund, Yifang Luo, Fan Zhang, Erik Katsavounidis and Lisa Barsotti, with support from the MIT Kavli Institute for Astrophysics and Space Research & LIGO Laboratory, and the NSF AI Institute for Artificial Intelligence and Fundamental Interactions.
 
