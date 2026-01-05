@@ -1,0 +1,23 @@
+# LLMS
+primary_llm_model: gemma3:27b-it-qat  #mistral-nemo:latest,gemma3:27b-it-qat 
+secondary_llm_model: qwen2.5:latest #qwen2:latest
+tertiary_llm_model: mistral-nemo:latest #qwen2:latest
+
+
+
+# GROQ Cloud models
+primary_groq_llm_model: meta-llama/llama-4-scout-17b-16e-instruct # llama-3.3-70b-versatile,  meta-llama/llama-4-scout-17b-16e-instruct, meta-llama/llama-4-maverick-17b-128e-instruct
+secondary_groq_llm_model: meta-llama/llama-4-maverick-17b-128e-instruct # llama-3.1-8b-instant,gemma2-9b-it
+tertiary_groq_llm_model: llama-3.3-70b-versatile # llama-3.3-70b-versatile 
+quaternary_groq_llm_model: llama-3.1-8b-instant
+fifth_groq_llm_model: llama-3.3-70b-versatile 
+
+query_improvement_groq_model: llama-3.3-70b-versatile
+
+# No longer used params
+# QA_PAIR_GENERATION_MODEL
+# Check ENABLE_QA_PAIR_GENERATION is enabled
+qa_pair_generation_model: gemma3:27b-it-qat 
+
+
+

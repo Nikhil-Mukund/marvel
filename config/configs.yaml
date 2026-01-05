@@ -1,0 +1,9 @@
+# python implementation do not support !include syntax in yaml.
+# these statements only provide a conceptual reference of included yaml file.
+# models: !include models.yaml
+# data: !include data.yaml
+# retrieval: !include retrieval.yaml
+
+general:
+  # Use LLM-Based-State-Machines to improve user query
+  enable_llm_query_improvement: true

@@ -1,0 +1,95 @@
+# currently unused, all search_type were hard-codely set.
+# mmr, similarity, similarity_score_threshold
+search_type: mmr
+enable_text_preprocess: 1  # 1
+enable_verbose: 0  # 1
+# unused
+enable_parallel_embed: 0  # 0
+enable_limit_max_embed_docs: 0  # 0
+enable_aggregation: false
+
+max_embed_docs: 100  # 100
+keyword_search_type: exact  # fuzzy, exact
+BM25_min_terms: 2  # atleast n_terms of seary_query should be there in the BM25 search
+
+# chunk params
+chunk_size: 1500  # old:1500 but 1500 causes issues with ColBERTv2, 512 seems OK
+chunk_overlap: 500  # old:500
+
+# Retrieval Doc Params
+max_return_docs: 40 #40
+initial_retrieval_count: 50  # 50 for BM25 & FAISS
+enable_hyde: false # HyDE: Augment Query with hypothetical answer、
+
+# Groq API Cloud inference
+enable_groq_inference_for_public_docs: true
+GROQ_API_KEY: 
+groq_primary_model: llama-3.3-70b-versatile  
+groq_secondary_model: qwen-2.5-32b
+
+# Constants for MCTS
+mcts_rag_max_iterations: 5  # Adjusted for testing
+max_children_per_node: 5
+mcts_rag_exploration_constant: 1.41  # Exploration constant 'c' in UCT formula
+mcts_early_stopping_rounds:  2  
+mcts_early_stopping_threshold: 0.05  
+
+# Relative Weights for the EnsemsbleRetriever
+ensemble_retriever_bm25_relative_weight: 0.3        # 0.35
+ensemble_retriever_FAISS_relative_weight: 0.5        # 0.5
+ensemble_retriever_DuckDuckGo_relative_weight: 0.2  # 0.15
+
+# ensemble_retriever_semantic_relative_weight = 0 # not used...., if active modify {EnsembleRetriever,get_best_VecDB_info} and include chroma_retriever
+# DISABLING will swap it with BM25 (so BM25 used twice again, its a temporary hack)
+disable_llm_embed_retreiver: 1
+
+
+# Tavilty WebSearch API Key [1000 free requests per month]
+TAVILY_API_KEY: 
+
+
+# LIGO ACRONYMS File
+LIGO_ACRONYM_FILE: /libs/LIGO_ACRONYMS/LIGO_ACRONYM_DEFINITIONS.csv
+
+# Streamlit UI
+show_config_params_in_UI: false
+
+# SEARCH_SPECFIC RELEVANCE_SCORE (for faster response)
+RELEVANCE_SCORE_THRESHOLD: 0.8
+RELEVANCE_SCORE_THRESHOLD_CHECK_N_TIMES: 3
+
+# Auto Switch to DeepSearch if Standard Search returns no results
+ENABLE_AUTO_SWITCH_TO_DEEPSEARCH: false
+
+# Min Verified Documents needed per Search
+MIN_VERIFIED_DOCS: 3
+
+# Enable Web PDF Extraction
+ENABLE_WEB_PDF_EXTRACTION: true
+WEB_EXTRACTION_TOKEN_LIMIT: 15000
+GROQ_MAX_TOKEN_PER_MINUTE: 15000
+GROQ_TIMEOUT_MAX_SECONDS: 40 #10
+GROQ_TIMEOUT_MAX_TRIES: 2
+
+# General Answer Caching
+ENABLE_CACHE: true
+
+# Deep Search Methofs
+DEEPSEARCH_CACHE_PATH: deepsearch_cache.pkl
+DEEPSEARCH_CACHE_SIMILARITY_THRESH: 0.88
+
+# Deep Search Final Report Generation Method
+DEEPSEARCH_FINAL_REPORT_METHOD: langgraph_based # {prompt_based, langgraph_based}
+DEEPSEARCH_STREAMLIT_CACHE_VERBOSE: false
+DEEPSEARCH_ENABLE_GROQ_TOKENS_PER_MINUTE_CHECK: true
+
+
+# REGEX
+REGEX_DEDUP_PARAGRAPH_SIMILARITY_THRESHOLD: 0.97
+
+
+# Agent Sidebar Search Function Settings
+enable_search_type_selection: true
+enable_user_early_stopping_selection: true
+
+

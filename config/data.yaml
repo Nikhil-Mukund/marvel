@@ -1,0 +1,40 @@
+
+# available: DocPDF, ArxivData, LatexData, JSONLData, ALL_V2
+# ALL_V2 combines all existing vectorstores.
+
+# Note:
+# If new files are added to say "./RAG_DataSets/DocPDF/" directory,
+# and then you want to regenerate the embeddings,
+# delete corresponding previously generated vectorstore directory = "./faiss/specific_vectorstore/" folder
+
+datasets: "ALL_V2"
+
+vec_store_options:
+  - "DocPDF"
+  - "LatexData"
+  - "TextData"
+  - "AudioTextData"
+  - "JSONLDATA"
+  - "ALL_V2"
+
+faiss_vector_store_merges:
+  - TextData
+  - DocPDF
+  - LatexData
+  - JSONLData
+  - AudioTextData
+
+# PDF extraction method
+# {"tesseract" or "surya"} # NOTE:Surya is faster & more accurate, check doc
+pdf_extraction_method: surya
+
+
+# ArXiv Abstract Fetch Info
+arxiv_keyword: LIGO
+arxiv_start_date_str: 2014-04-01
+arxiv_end_date_str: now # "now" or a %Y-%m-%d date, e.g. 2024.04.01
+   # till NOW
+arxiv_max_results_per_year: 10000
+arxiv_max_try: 10
+
+

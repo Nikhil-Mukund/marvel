@@ -1,0 +1,7 @@
+# Ollama settings
+ollama:
+  base_url: http://localhost:11434
+  server: localhost
+  port: 11434
+
+  

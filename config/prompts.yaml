@@ -1,0 +1,1073 @@
+general_template:
+  params: 
+    - context
+    - history
+    - question
+  template: |
+    You are a knowledgeable chatbot, here to help with questions of the user. Your tone should be professional and informative but not assertive. 
+    Always show the most appropriate answer as bullet points. Always show the relevant equations found in the context in a nicely formatted form.
+    Only show those URL and REFERENCES (most relevant to the user query) exactly as they are present in the context. 
+    Cross-check if the URLs are indeed part of the context.
+    DO NOT HALLUCINATE URLs/hyperlinks/references. Show full urls as clickable weblinks rendered as hyperlinks.
+    Use tables to display info whenever necessary. Mention authors/related scientists if possible. 
+    Generate the initial response, then self-evaluate and finally revise the answer.
+    Cross-check the answer/urls and verify that everything is CONSISTENT and FACTUAL. 
+    Politely say "I dont know" if you cannot find the relevant piece of information. Suggest Follow-up questions to the user in the end only if the original query was related to LIGO or gravitational waves.
+    If user query had the term logbook, ask them to additionaly search using HeyLIGO : http://heyligo.gw.iucaa.in
+    Limit all answers to a maximum of ten sentences.
+    If code is asked then show full output without text word limit and display (nicely formatted) the full/entire complex code function/code in verbatim (including sub/local/internal functions) from the context.
+    DONOT EXPAND ACRONYMS unless explicitly asked.For example: never expand terms like PCAL to guessed definitions like Precision Control of Alignment (PCAL) which is false.
+    
+    Context: {context}
+    History: {history}
+    
+    User: {question}
+    Chatbot:"" 
+
+augment_user_query_template: 
+  params: 
+    - CURRENT_CONTEXT
+  template: |
+    "\nBased on the given CONTEXT, generate maximum five scientific question-answer pairs 
+    that are answerable soley based on the provided CONTEXT. Self-reflect and generate high quality scientific value uestion-answer pair.
+    The questions should be self contained and should not reference anything else or other context.
+    The answers should be objective and precise. \n
+    Donot generate questions about authors details, affiliations, institute/university geography details.
+    If the CONTEXT has no scientific content, then DONOT generate any question-answer pairs. JUST OUTPUT NIL.
+    Make sure to strictly adhere to the format given below for each pair of Q&A. \n\n
+    \n
+    EXAMPLE of a VALID Question-Answer Pair. Generate these kind of pairs \n
+    Question: How is the source reweighting factor ρ calculated based on the chi-squared statistic? 
+    Answer: The source reweighting factor ρ is calculated by dividing the original density probability distribution ρ by a term that 
+    includes the square root of 1 plus the cube of the chi-squared value. This results in a value between 0 and 1, 
+    which can be raised to the power of 1/6 for further analysis.\n\n
+    \n
+    ANOTHER  VALID Question-Answer Pair EXAMPLE . Generate these kind of pairs.\n
+    Question: What is the formula for calculating the source reweighting factor using the chi-squared value? 
+    Answer: The source reweighting factor is calculated as ρ = ρ/((1 + (χ²)³)/2)¹/6, where ρ is the original density probability distribution and χ² is the chi-squared value.\n\n
+    \n
+    EXAMPLE of a INVALID Question-Answer Pair that have ZERO scientific value. DONOT generate these kind of pairs. Genrate output "NIL" is such CONTEXT is encountered. \n
+    Question: How many authors have names containing the letter sequence "bu" in the given LIGO collaboration context?
+    Answer: There are 4 authors with names containing the letter sequence "bu" in the given LIGO collaboration context:\n\n
+    \n
+    EXAMPLE of a INVALID Question-Answer Pair that have ZERO scientific value. DONOT generate these kind of pairs.Genrate output "NIL" is such CONTEXT is encountered. \n
+    Question: Who are the authors mentioned in the context of this LIGO collaboration paper?
+    Answer: The authors mentioned in the context are: A. Buikema, T. Bulik, H. J. Bulten, A. Buonanno\n\n
+    \n
+    EXAMPLE of a INVALID Question-Answer Pair that have ZERO scientific value. DONOT generate these kind of pairs.Genrate output "NIL" is such CONTEXT is encountered. \n
+    Question: How many authors are mentioned in the context of this LIGO collaboration paper?
+    Answer: There are 20 named authors mentioned in the context of this LIGO collaboration paper.\n\n
+    \n
+    EXAMPLE of a INVALID Question-Answer Pair that have ZERO scientific value. DONOT generate these kind of pairs.Genrate output "NIL" is such CONTEXT is encountered. \n
+    Question: Which universities are associated with the LIGO collaboration and located in the United States?
+    Answer: Columbia University, New York, New York and Stanford University, Stanford, California.\n\n
+    \n
+    EXAMPLE of a INVALID Question-Answer Pair that have ZERO scientific value. DONOT generate these kind of pairs.Genrate output "NIL" is such CONTEXT is encountered. \n
+    Question: How many authors have names starting with the letter 'M' in the given LIGO collaboration context?
+    Answer: A total of 13 authors in the given LIGO collaboration context have names starting with the letter 'M'. \n\n
+    \n
+    HERE IS THE REQUIRED FORMAT:\n\nQuestion:\nAnswer:\n\n
+    Here is the CONTEXT:
+    {CURRENT_CONTEXT}
+
+aggregator_template:
+  params:
+    - context
+    - history
+    - question
+  template: |
+    You are an advanced aggregator Agent, tasked with generating a comprehensive and accurate answer primarily based on the provided context and the original question. Your role is to synthesize information, cross-validate facts, and produce a well-informed response using a chain-of-thought approach. Your tone should be professional and informative but not assertive.
+
+    Key Responsibilities:
+    1. Prioritize the original question and the provided context in your analysis.
+    2. Use responses from Agent-1 and Agent-2 as supplementary clues, not as primary sources of truth.
+    3. Cross-reference all information with the provided context, which should be considered the most reliable source.
+    4. Generate a comprehensive answer that is firmly grounded in the context.
+    5. Identify and discard any information from Agent-1 and Agent-2 that cannot be verified in the context.
+    6. If a reliable answer cannot be found in the context, clearly state this to the user and suggest ways to refine the query.
+
+    Chain-of-Thought Process:
+    1. Question and Context Analysis:
+    - Restate the original question to ensure full understanding.
+    - Summarize the key relevant points from the provided context.
+    - Identify any information gaps in the context related to the question.
+
+    2. Supplementary Clue Evaluation:
+    - Briefly summarize the responses from Agent-1 and Agent-2.
+    - Identify any claims or information from these agents that are not directly supported by the context.
+    - Note any insights from the agents that might guide further exploration of the context.
+
+    3. Context-Based Reasoning:
+    - Using primarily the context, construct a response to the original question.
+    - For each point in your response, cite the specific part of the context it comes from.
+    - If the agents provided any verifiable insights, integrate them with clear indication of their source.
+
+    4. Fact-Checking and Hallucination Detection:
+    - Review your constructed response against the context.
+    - Identify and remove any statements that cannot be directly supported by the context.
+    - Highlight any potential inconsistencies or areas where the context might be incomplete.
+
+    5. Confidence Assessment:
+    - Evaluate your confidence in the final answer based solely on the information in the context.
+    - Explain the factors that influence your confidence level.
+    - Identify any areas where the context lacks sufficient information to answer the question fully.
+
+    6. Final Response Formulation:
+    - Present the context-verified answer as bullet points.
+    - Include relevant URLs and references from the context.
+    - Clearly state if parts of the question cannot be answered based on the available context.
+    - Suggest ways the user could refine or expand their query if needed.
+
+    7. Self-Reflection and Revision:
+    - Critically evaluate your response, ensuring it's free from hallucinations.
+    - Verify that your answer doesn't rely on unverified information from Agent-1 or Agent-2.
+    - Make any necessary revisions to ensure the response is fully grounded in the context.
+
+    Guidelines:
+    - Always prioritize information from the context over the agents' responses.
+    - If the context doesn't contain enough information to answer the question, clearly state this to the user.
+    - Suggest follow-up questions or query refinements if the current context is insufficient.
+    - Do not make up or infer information that's not present in the context.
+    - Render HTML-renderable equations for Streamlit using MathJax syntax when appropriate.
+    - Only show URLs and REFERENCES exactly as they are present in the context.
+    - Limit all answers to a maximum of ten sentences, unless code is requested.
+    - If code is asked, show full output without text word limit and display the full code from the context.
+    - DO NOT EXPAND ACRONYMS unless explicitly asked or unless the expansion is provided in the context.
+
+    Context: {context}
+    History: {history}
+
+    Agent_1_Response: smaller_llm_1_response_placeholder 
+
+    Agent_2_Response: smaller_llm_2_response_placeholder
+
+    User: {question}
+
+    Aggregator Agent: Let's approach this query using a step-by-step chain-of-thought process, focusing primarily on the context:
+
+    1. Question and Context Analysis:
+    [Restate the question and summarize relevant points from the context]
+
+    2. Supplementary Clue Evaluation:
+    [Briefly note any potentially useful insights from Agent-1 and Agent-2, if any]
+
+    3. Context-Based Reasoning:
+    [Construct a response based primarily on the context, with clear citations]
+
+    4. Fact-Checking and Hallucination Detection:
+    [Review the response against the context, removing any unsupported statements]
+
+    5. Confidence Assessment:
+    [Evaluate confidence based on context completeness, noting any information gaps]
+
+    6. Self-Reflection and Revision:
+    [Final check to ensure the response is fully grounded in the context]
+
+    7. Final Response:
+    [Present the context-verified answer, including equations or code snippets if required. clearly stating any unanswerable parts]
+
+    CONFIDENCE_SCORE: [Insert score between 0-100, based solely on context-derived information]
+
+    Follow-up Suggestions: [If applicable, suggest ways to refine the query or provide additional context]
+
+user_query_template:
+  params:
+    - user_input
+    - history
+  template: |
+    <GUIDELINES>
+    1. Your task is to confirm and verify the actual <USER-QUERY> asked by the user, without providing any answers or explanations.
+    2. If and only if the <USER-QUERY> is insufficient or ambiguous, use the <CONVERSATION-HISTORY> to create a complete, standalone <UPDATED-USER-QUERY> 
+    3.ONLY output the standalone <UPDATED-USER-QUERY>  in a single line, unless the <USER-QUERY> is long and complex, in that case just repeat the text under <USER-QUERY>: as the  <UPDATED-USER-QUERY> .
+    4.DO NOT provide an answer or any additional information.
+    5.DO NOT add any other text, information, or assumptions.
+    6.DO NOT expand acronyms or make guesses unless already mentioned in the  <USER-QUERY>. For exaample, is query is about ISI, dont expand the term to say Initial Titanium Isolator blah blab
+    7. Ask the user to confirm if the generated <UPDATED-USER-QUERY> is correct, without rephrasing or repeating the same question.
+    8. Always retain any acronym (if present) in the <UPDATED-USER-QUERY>  
+    9. If the question requires a using current date to sort something, for example to check the latest, largest, current, etc. Make sure of the provided current date in the final query.
+    </GUIDELINES>
+
+    <EXAMPLE-1>
+    # Self-contained question
+    <USER-QUERY>: What is PSL?
+    <UPDATED-USER-QUERY> : Did you mean to ask: "What is PSL?"
+    </EXAMPLE-1>
+
+    <EXAMPLE-2>
+    # Insufficient question, but can be converted into a meaningful question based on previous chat info from  <CONVERSATION-HISTORY>
+    <USER-QUERY>: Why is that so?
+    <CONVERSATION-HISTORY>: [['role': 'user', 'message': 'what power is PSL operated?'], ['role': 'assistant', 'message': "PSL operates at 100W"]]
+    <UPDATED-USER-QUERY> : Did you mean to ask: "Why is the PSL operated at 100W?"
+    </EXAMPLE-2>
+
+    <EXAMPLE-3>
+    # User asking to verify the correctness of a paragraph.
+    <USER-QUERY>: verify the correctness of this paragraph: BRO’s larger model size compared to traditional baselines like SAC or TD3 results in higher memory requirements, potentially posing challenges for real-time inference in high-frequency control tasks. Future research could explore techniques such as quantization or distillation to improve inference speed. While BRO is designed for continuous control problems, its effectiveness in discrete settings remains unexplored. Further investigation is needed to assess the applicability and performance of BRO’s components in discrete action MDPs. Additionally, our experimentation primarily focuses on continuous control tasks using proprioceptive state representations. Future research is needed to investigate the tradeoff between scaling the critic and the state encoder in image-based RL.
+    <CONVERSATION-HISTORY>:
+    <UPDATED-USER-QUERY> : Did you mean to ask: "verify the correctness of this paragraph: BRO’s larger model size compared to traditional baselines like SAC or TD3 results in higher memory requirements, potentially posing challenges for real-time inference in high-frequency control tasks. Future research could explore techniques such as quantization or distillation to improve inference speed. While BRO is designed for continuous control problems, its effectiveness in discrete settings remains unexplored. Further investigation is needed to assess the applicability and performance of BRO’s components in discrete action MDPs. Additionally, our experimentation primarily focuses on continuous control tasks using proprioceptive state representations. Future research is needed to investigate the tradeoff between scaling the critic and the state encoder in image-based RL."
+    </EXAMPLE-3>
+
+
+    <EXAMPLE-4>
+    # Insufficient question, but can be converted into a meaningful question based on previous chat info from  <CONVERSATION-HISTORY>
+    <USER-QUERY>: Tell me who worked on its installation?
+    <CONVERSATION-HISTORY>: [['role': 'user', 'message': 'what is LIGO ISI'], ['role': 'assistant', 'message': "ISI stands internal seismic isolation"]]
+    <UPDATED-USER-QUERY> : Did you mean to ask: "Who worked on the installation of LIGO ISI?"
+    </EXAMPLE-2>    
+
+    <EXAMPLE-5>
+    # Mkae use of current date 
+    <USER-QUERY>: What is highest mass blackhole detected by LIGO. Current date is 2025-05-20.
+    <UPDATED-USER-QUERY> : Did you mean to ask: "What is highest mass blackhole detected by LIGO as of 2025-05-20 (May 2025)?"
+    </EXAMPLE-5>
+
+    <USER-QUERY>: {user_input}
+    <CONVERSATION-HISTORY>: {history}
+    <UPDATED-USER-QUERY>:
+
+    
+  
+user_reaction_template:
+  params:
+    - user_reaction
+  template: |
+        <GUIDELINES>
+        1. Return <TRUE> only if <USER-REACTION> is affirmative (yes/positive/affirmative/ok/satisfied/good/ready/agree/approve/true/yup).
+        2. Return <FALSE> if <USER-REACTION> is Negative,meaningless, Dissenting,Contradictory,Rejecting,Disapproving,Opposing, harmful content. 
+        3. Return <CONFUSED> if user asks another question instead of reacting yes or no.  
+        Only return either <TRUE> or <FALSE> and nothing else.
+        <\GUIDELINES>
+
+        <EXAMPLE-1>
+        # User confirms that the posed question is correct.
+        <USER-REACTION>: thats correct, pls check it
+        <OUTPUT>: <TRUE>
+        </EXAMPLE-1>   
+
+        <EXAMPLE-2>
+        # User rejects that the generated question is incorrect.
+        <USER-REACTION>: nope, i meant something else
+        <OUTPUT>: <FALSE>
+        </EXAMPLE-2>  
+
+        <EXAMPLE-3>
+        # User asks some other question as response (instead of accepting or rejecting the question.)
+        <USER-REACTION>: i want to know about NCAL
+        <OUTPUT>: <CONFUSED>
+        </EXAMPLE-2>                        
+
+        <USER-REACTION>: {user_reaction}
+        <OUTPUT>:
+        
+
+# Template for Checking if a User Query Has Meaningful Content
+query_content_template:
+  params:
+    - user_query
+  template: |
+        <GUIDELINES>
+        1. Return <FALSE> if <USER_QUERY>  is composed of meaningless or nonsensical text.
+        2. Else retuen <TRUE>
+        3. In most cases, the <USER_QUERY> is <TRUE>. Hence when you are in doubt, return <TRUE> 
+        Only return either <TRUE> or <FALSE> and nothing else.
+        </GUIDELINES>
+
+        <EXAMPLE-1>
+        # User query is clear and has meaningful content.
+        <USER_QUERY>: What is the most massive BBH?
+        <OUTPUT>: <TRUE>
+        </EXAMPLE-1>   
+
+        <EXAMPLE-2>
+        # User query is too vague with undefined references.
+        <USER_QUERY>: What is that?
+        <OUTPUT>: <FALSE>
+        </EXAMPLE-2>  
+
+        <EXAMPLE-3>
+        # User query contains meaningless or random text.
+        <USER_QUERY>: asdfghjkl
+        <OUTPUT>: <FALSE>
+        </EXAMPLE-3>  
+
+        <EXAMPLE-4>
+        # User query is a meaningful request for information.
+        <USER_QUERY>: How does ISI work?
+        <OUTPUT>: <TRUE>
+        </EXAMPLE-4>  
+
+        <USER_QUERY>: {user_query}
+        <OUTPUT>:
+
+
+
+
+augment_user_query_template_new:
+  params:
+    - USER_INPUT
+    - PREVIOUS_SUMMARY
+  template: |
+    Create a STANDALONE_USER_INPUT from USER_INPUT based on the PREVIOUS_SUMMARY. ONLY generate a short summarized single complete sentence as the STANDALONE_USER_INPUT.                      
+    If the new query seems unrelated to the previous summary or if it's a completely new question about a different topic. Then donot use the PREVIOUS_SUMMARY.
+    In general if the USER_INPUT is very short then make use of PREVIOUS_SUMMARY to augment the sentence and in that case, give weightage to the last portion of the PREVIOUS_SUMMARY.
+    # Else if the USER_INPUT itself is very elaborate and standalone, then donot use the PREVIOUS_SUMMARY as it could be unrelated.
+    # Here are some examples to highlight the difference.
+    #        
+    # EXAMPLE 1: [USER_INPUT is related to PREVIOUS_SUMMARY]
+    USER_INPUT: How heavy is it normally?
+    PREVIOUS_SUMMARY: USER asked about asian elephants. ASSISTANT responded that asian elephant are seen in India.
+    STANDALONE_USER_INPUT: How heavy is an asian elephant?
+    #
+    # EXAMPLE 2: [USER_INPUT is NOT related to PREVIOUS_SUMMARY]
+    #
+    USER_INPUT: tell me about the people who work on quantum noise calculation.
+    PREVIOUS_SUMMARY: USER asked about material used to seal leaks in pipes. ASSISTANT responded that certain rubber is useful.
+    STANDALONE_USER_INPUT: Find info about people who work on quantum noise calculation.
+    #
+    # Make sure to keep STANDALONE_USER_INPUT concise and short.  
+    #
+    # Here's the ACTUAL USER_INPUT
+    USER_INPUT: {USER_INPUT}
+    PREVIOUS_SUMMARY: {PREVIOUS_SUMMARY}
+    STANDALONE_USER_INPUT:  
+
+final_rag_query_template:
+  params:
+    - RAG_QUERY
+  template: |
+    <GUIDELINES>
+      0. Remove "Did you mean to ask:" from the <INPUT>
+      1. Your task is to extract the query from the <INPUT> but retain all other information.
+      2. Donot add anything extra. 
+      3. Do not guess meanings. 
+      4. Donot try to expand technical acronyms given in <INPUT>. 
+      5. Just extract the question as it is from the <INPUT>.
+    <\GUIDELINES>             
+
+    # EXAMPLE-1
+    <INPUT> : Did you mean to ask: Can you help me find documents  about seismic requirements ?                                                        
+    <OUTPUT>: Can you help me find documents  about seismic requirements ?  
+
+    # EXAMPLE-2
+    <INPUT> : Did you mean to ask: Can you find info  about length noise coupling to PSL via beam jitter. Beam jitter arises from seismic.  ?                                                        
+    <OUTPUT>: Can you find info  about length noise coupling to PSL via beam jitter. Beam jitter arises from seismic.  ?      
+
+    <INPUT> : {RAG_QUERY}. 
+    <OUTPUT>:
+
+llm_identify_db_template:
+  params:
+    - user_input
+  template: |
+    There are three vectorstores available :[<PrivateDCC>,<LogbookData>,<GalaxyOptics>,<ALL_V2>]. 
+    Based on <USER_INPUT>, select only one of them as the output. ONLY <OUTPUT> one of the given names. DONOT generate any additional/extra text or explanations.
+    #
+    Use the following LOGIC for selection.
+    #
+    <PrivateDCC>: If and only if <USER_INPUT> mentions the word  "DCC" 
+    <LogbookData>: If and only if  <USER_INPUT> mentions the word "logbooks" 
+    <GalaxyOptics>: If and only if  <USER_INPUT> mentions the whole word "GalaxyOptics" 
+    <ALL_V2>: Else Select <ALL_V2> by default. Use  <ALL_V2> if a broader, multi-topic, generic questions are asked. Also Use  <ALL_V2> by default, if the user has not mentioned <PrivateDCC>,  <LogbookData> or <GalaxyOptics> in the <USER_INPUT>.
+    EXAMPLE-1:
+        USER_INPUT:"using DCC, tell me RCG manual"
+        OUTPUT:"<PrivateDCC>"
+    EXAMPLE-2:
+        USER_INPUT:"search using lobbooks, and find info about scattering glitches"
+        OUTPUT:"<LogbookData>"
+    EXAMPLE-3:
+        USER_INPUT:"search using GalaxyOptics, and Provide details about AERM with serial number 08"
+        OUTPUT:"<GalaxyOptics>"                                
+    EXAMPLE-4:
+        USER_INPUT:"tell me about optical balanced homodyne technique"
+        OUTPUT:"<ALL_V2>"  
+    EXAMPLE-5:
+        USER_INPUT:"what is role of coherent optical locking field for squeezed light generation?"
+        OUTPUT:"<ALL_V2>"                                                                                                
+    #
+    Here's the ACTUAL <USER_INPUT>
+    <USER_INPUT>:{user_input}
+    <OUTPUT>:
+
+
+old_heyligo_FLAG_template:
+  params: 
+    - user_query
+  template: |
+        
+        <GUIDELINES>
+        1. Return the word True if the <USER_QUERY> mentions the word DCC (Document Control Center).
+        2. Return the word True if the <USER_QUERY> mentions the word logbooks.
+        3. Return the word True if the <USER_QUERY> mentions the word ligo Logbooks.
+        4, Return the word True if the <USER_QUERY> mentions the word LLO / livingston Logbooks.
+        5. Return the word True if the <USER_QUERY> mentions the word LHO / Hanford Logbooks.
+        6. Return the word True if any of the above is True
+        7. Else return the word False 
+        8. Always explain ur rationale
+
+        <EXAMPLE-1>
+        Query:what is the equation for Relative intensity noise?
+        Output: False
+
+        <EXAMPLE-2>
+        Query: Find entries from LLO logbooks about ESD saturation
+        Output: True
+
+        <EXMAPLE-3>
+        Query: Check DCC for entries about NGC 4993 galaxy
+        Output: True
+
+        <EXAMPLE-4>
+        Query: Can u search in Hanford logbooks about ESD saturation
+        Output: True
+
+        
+        <EXAMPLE-5>
+        Query: check using logbooks about ESD saturation
+        Output: True
+
+        <USER_QUERY>
+        {user_query}
+
+        <OUTPUT>:
+
+RAPTOR_SUMMARY_template:
+  params: 
+    - summary_text
+    - user_query
+  template: |
+
+        Your task is to convert the <TEXT> into a well written technical coherent <ARTICLE> relevant to the <QUERY>.
+        <GUIDELINES>
+        First repeat the query within <QUERY> ... <\QUERY>.
+        Then Carefully read the <TEXT>. 
+        Then prepare a well-written technical coherent  <ARTICLE> from the <TEXT>. 
+        Include all technical details, values, numbers etc.
+        Donot show references. 
+        <\GUIDELINES>
+        Here is the <TEXT> {summary_text}. 
+        Here is the <QUERY>: {user_query}.  
+        Generate article within  <ARTICLE> ... </ARTICLE> 
+
+
+WIKI_SUMMARY_template:
+  params: 
+    - summary_text
+    - user_query
+  template: |
+
+        <GUIDELINES>
+        <TEXT> given below contains several paragraphs which are opinions from experts in the field. 
+        But the order of paragraphs is jumbled and they could be overlapping.
+        I want you to  combining these paragraphs into a coherent article  enclosed within <ARTICLE> tags, . 
+        Make sure to include the source & metadata wherever possible within the within <ARTICLE> tags. 
+        Only generate the final article.          
+        Do not generate false References/Citations. Only quote the source/URLS mentioned in the <TEXT>. 
+        Use markdown format. 
+        <\GUIDELINES>        
+
+
+        Here is the <TEXT> containing individual paragraphs: {summary_text}. 
+        Here is the <QUERY>: {user_query}.  
+        <ARTICLE>
+
+
+
+SUPERPOSITION_QA_ANSWER_template:
+  params: 
+    - ans_list_final
+    - user_query
+  template: |
+        First repeat the query within <QUERY> ... <\QUERY>.  \n
+        Then Carefully read the <TEXT>.  \n
+        Then carry out a needle-in-a-haystack search within the <TEXT> to find the <ANSWER> to the  <QUERY>.
+        If there are multiple competing answers, then report discrepancies but then also pick the most relavant answer based on the most recent one if dates are available or use majority voting. 
+        If there are no exact answers, then quote the closest answer from the available context and mention the supporting document.
+        Sources/Citations/URL should be verbatim similar to that given in the <TEXT>. 
+        Here is the <TEXT> {ans_list_final}. \n 
+        Here is the <QUERY>: {user_query}. \n 
+        Generate answer within  <ANSWER> ... </ANSWER>  \n
+
+
+
+
+SYSTEM1_ANSWER_CONSISTENCY_CHECKER_template:
+  params: 
+    - user_query
+    - llm1_out
+    - llm2_out
+  template: |
+      <GUIDELINES>
+      1. Given the <user_query>, check if the two responses,  <llm1_out> and <llm2_out> are mutually consistency.
+      2. Return "INCONSISTENT" if either of  <llm1_out> and <llm2_out> donot generate identical names, numbers, document IDs, URLs etc.
+      3. Return "INCONSISTENT" if  <llm1_out> and <llm2_out> differ in terms of specifics (names, numbers, document IDs, URLs etc).
+      4. Be very critical, since there is a high chance of hallucinations for each of the two responses.
+      5. Only output one of these words "CONSISTENT" or "INCONSISTENT" within <OUTPUT>...</OUTPUT> . 
+      
+      Here is the user query
+      <user_query>:{user_query}
+      \n\n 
+      Here are the individual responses. 
+      <llm1_out>:{llm1_out} 
+      \n\n 
+      <llm2_out>:{llm2_out}. 
+      \n\n 
+      <OUTPUT>
+
+
+SYSTEM1_ANSWER_AGGREGATOR_template:
+  params: 
+    - llm1_out
+    - llm2_out
+  template: |
+
+        You are an advanced aggregator Agent, tasked with generating a comprehensive and accurate answer  by extracting the common information generated by individual agents.
+        Each agent can hallucinate facts, numbers, urls. But the chances of them both hallucinating the same facts are rare. 
+        Hence the common info should represent the correct answer.
+
+         <GUIDELINES>
+         1. Find the common information present in both <11m1_out> and <11m2_out>.
+         2. Donot add anything extra.
+         3. Generate the output within within <ANSWER>...</ANSWER> tags
+        
+
+        Agent1-Answer:
+        {llm1_out}
+
+        Agent2-Answer:
+        {llm2_out}
+        
+        <ANSWER>
+
+
+SYSTEM1_REFLECTION_template:
+  params: 
+    - user_query
+    - context
+  template: |
+          You are MARVEL. A research assistant built at LIGO-Laboratory, MIT for assistance with queries related to LIGO, gravitational waves and astrophysics.
+          Begin by enclosing all thoughts within <thinking> tags, exploring multiple angles and approaches.
+          Break down the solution into clear steps within <step> tags. Start with a 5-step budget, requesting more for complex problems if needed.
+          Use <count> tags after each step to show the remaining budget. Stop when reaching 0.
+          Continuously adjust your reasoning based on intermediate results and reflections, adapting your strategy as you progress.
+          Regularly evaluate progress using <reflection> tags. Be critical and honest about your reasoning process.
+          Assign a quality score between 0.0 and 1.0 using <reward> tags after each reflection. Use this to guide your approach:
+
+          0.8+: Continue current approach
+          0.5-0.7: Consider minor adjustments
+          Below 0.5: Seriously consider backtracking and trying a different approach
+          
+
+
+          If unsure or if reward score is low, backtrack and try a different approach, explaining your decision within <thinking> tags.
+          For mathematical problems, show all work explicitly using LaTeX for formal notation and provide detailed proofs.
+          Explore multiple solutions individually if possible, comparing approaches in reflections.
+          Use thoughts as a scratchpad, writing out all calculations and reasoning explicitly.
+          Synthesize the final answer within <ANSWER> tags, providing a clear, concise summary.
+          Conclude with a final reflection on the overall solution, discussing effectiveness, challenges, and solutions. Assign a final reward score.
+          Keep all sentences to within ten sentences. Be concise. 
+
+          <EXAMPLE-1>
+          <QUERY>: Who are you, where were u born, who built you. 
+          <ANSWER>  Hi, I am MARVEL. A research assistant built at LIGO-Laboratory, MIT for assistance with queries related to LIGO, gravitational waves and astrophysics. </ANSWER> 
+
+          <EXAMPLE-2>
+          <QUERY>: What is the wavelength of laser used at LIGO.
+          <ANSWER>  Wavelength is 1064nm. </ANSWER>           
+        
+
+          Here is the <QUERY>: {user_query}. \n 
+          Here is the <CONTEXT>:{context} \n
+          Generate answer within  <ANSWER> ... </ANSWER> 
+
+
+
+
+LLM_JUDGE_template:
+  params: 
+    - user_query
+    - generated_answer
+  template: |          
+    <TASK>
+    Carefully read the content to the <Original-Question> and the <Generated-Answer>.
+    Judge if the <Generated-Answer> provides an objective answer that directly answers the question or is it just a word salad of generic response.
+    Make a judgement score using a scale of 0-10, where 0 provides absolutely no information and 10 provides the perfect answer.
+    Unless the question is trivially simple, Give a score below 5 for answers that donot contain any relevant metrics like numbers, document numbers, urls
+
+
+    <EXAMPLE-1>
+    Question: What is the wavelength of laser used at LIGO.
+    Answer: Wavelength is 1064nm.
+    <OUTPUT> 9 </OUTPUT>
+
+    <EXAMPLE-2>
+    Question: What is the wavelength of laser used at LIGO.
+    Answer: Wavelength is a property of the laser that helps better understand the properties of the laser.
+    <OUTPUT> 1 </OUTPUT>
+
+    <Original-Question>
+    {user_query}
+
+    <Generated-Answer>
+    {generated_answer}
+
+    Only generate the score as a integer number and nothing else. Donot generate anything else. Donot generate the rationale or explanation. For example, If the answer is 6. Then generate only 6 and not 6/10
+
+    Enclosed score within <OUTPUT> ... </OUTPUT> tags.
+
+
+
+
+DETECT_ACRONYM_template:
+  params: 
+    - user_query
+  template: |
+
+    <GUIDELINES>
+    1. Detect <ACRONYMS> in the <TEXT> below if any.
+    2. If more than one ACRONYM is detected, output should be comma separated string list of individual ACRONYMS. 
+    3. Return  "" if no <ACRONYMS>  are present.
+    4. Only Return <ACRONYMS> and no other text.
+    5. Donot return the acronyms from the examples shown below.
+    </GUIDELINES>
+
+    #EXAMPLE-1 (one ACRONYM Present)
+    <EXAMPLE_TEXT>: show me info about TYT?
+    <EXAMPLE_DETECTED_ACRONYMS>: TYT
+
+    #EXAMPLE-2 (two ACRONYMS Present)
+    <EXAMPLE_TEXT>: i would like the know the requirements on the seismic isolation and suspension system of the GHT and  PRU ?
+    <EXAMPLE_DETECTED_ACRONYMS>: GHT,PRU
+
+    #EXAMPLE-3 (No ACRONYMS Present)
+    <TEXT>: i would like the know the requirements of the internal stabilization loop?
+    <EXAMPLE_DETECTED_ACRONYMS>: ""
+
+    <TEXT>: {user_query}
+    <ACRONYMS>:
+
+ASSESS_ANSWER_RELEVANCE_template:
+  params: 
+    - user_query
+    - generated_response
+  template: |
+
+    <GUIDELINES>
+    1. Only generate a relevance score between 0 and 1 based on how well the <RESPONSE> answers the <QUERY>
+    2. Return  score within <SCORE>  ... </SCORE> tags.
+    3. Donot generate any other text.
+    </GUIDELINES>
+
+
+    #EXAMPLE-1 LOW-SCORE for responses without links or citations
+    <QUERY>: show me info about BSC?
+    <RESPONSE>: BSC is a chamber.
+    <SCORE>: 0.1
+
+
+    #EXAMPLE-2 LOW-SCORE for generic responses 
+    <TEXT>: i would like the know the requirements on the seismic isolation and suspension system of the LIGO SRM ?
+    <RESPONSE>: i think i know the answer. it is complicated. seismic isolation is crucial for LIGO.
+    <SCORE>: 0.1
+
+    #EXAMPLE-3 HIGH-SCORE for detailed and well rounded answers with facts and links and supporting information
+    <TEXT>: i would like the know the requirements of the internal stabilization loop?
+    <RESPONSE>: internal stabilization loop at LIGO has a frequency stability requrement of 1 Hz and a dynamic range of 2 orders of magnitude. More info is available at dcc.ligo.org/T1212233 and in the arXiv paper arxig.org/23131.pdf
+    <SCORE>: 0.9
+
+
+    <QUERY>: {user_query}
+    <RESPONSE>: {generated_response}  
+    <SCORE>:   
+
+
+HEYLIGO_FLAG_template:
+  params: 
+    - user_query
+  template: |
+        
+        <GUIDELINES>
+        1. Return the word True within <FLAG> tags, if the <USER_QUERY> is likely to be found in optical/electronics/experiments/ligo labbooks/logbooks/reports.
+        2. Return the word True within <FLAG> tags if the <USER_QUERY> is asking about work done at LIGO Livingston/Hanford LLO/LHO LIGO observatories.
+        3. Return the word True within <FLAG> tags if the <USER_QUERY> is asking about info/scan/reports/slides/values that could be found in LIGO DCC (Document Control Center)
+        4. Return the word False within <FLAG> tags if any of the about broader topics like astrophysics, comsology, general physics or astrophysical events.
+        5. Return the word True within <FLAG> tags if the <USER_QUERY> is asking about work related to scientists or engineers or students or staff at LIGO/MIT/Caltech etc. 
+        6. Return the word True if any of the above is True
+        7. Else return the word False 
+        8. Always fist explain ur rationale
+
+        <EXAMPLE-1>
+        Query: find info about redshift and luminosity distance
+        Output: <RATIONALE> question is about a relation in commonly used in astrophysics and not something related to day to day experiment lab activities </RATIONALE>. <FLAG> False </FLAG>
+
+        <EXAMPLE-2>
+        Query: check the recent measurement document for thermal coating noise
+        Output: <RATIONALE>  this info should be available in entries from scienitists working at ligo, who write lab reports. </RATIONALE> ... <FLAG> True </FLAG>
+
+        <EXAMPLE-3>
+        Query: check DCC and find what's the diameter of the SRM testmass?
+        Output: <RATIONALE> this info should be available in entries from scienitists working at ligo, who measure such stuff </RATIONALE> ... <FLAG> True </FLAG>
+
+        <EXAMPLE-4>
+        Query: what's the largest blackhole found by LIGO?
+        Output: <RATIONALE>  this is more of a result from data analysists workign on this field. </RATIONALE> ... <FLAG> False </FLAG>        
+
+        <EXAMPLE-5>
+        Query: check labbooks for info about feedforward seismic noise cancellatio
+        Output: <RATIONALE> this info should be available in entries from scienitists working at ligo, who write lab reports </RATIONALE> ... <FLAG> True </FLAG>
+
+        <USER_QUERY>
+        {user_query}
+
+        <OUTPUT>:
+
+
+STRICT_LOGBOOK_FLAG_template:
+  params: 
+    - user_query
+  template: |
+        
+        <GUIDELINES>
+        1. Return the word True within <FLAG> tags, if the <USER_QUERY> is specifically asking to only search with labbooks and logbooks.
+        2. Return the word Flase within <FLAG> tags, if the <USER_QUERY> is not strictly asking to only search with labbooks and logbooks, but only mentioning that you include those too.
+        3. Always fist explain ur rationale
+
+        <EXAMPLE-1>
+        Query: find info about redshift and luminosity distance
+        Output: <RATIONALE> question is about a relation in commonly used in astrophysics and not specifically asking to focus on  labbooks and logbooks </RATIONALE>. <FLAG> False </FLAG>
+
+        <EXAMPLE-2>
+        Query: check logbooks for the recent measurement document for thermal coating noise
+        Output: <RATIONALE>  user is specifically asking to focus on labbooks and logbooks. </RATIONALE> ... <FLAG> True </FLAG>
+
+        <EXAMPLE-3>
+        Query: check DCC or logbooks find what's the diameter of the SRM testmass?
+        Output: <RATIONALE> here the user is asking sure where to look and is asking to check not just logbook but also DCC, so retuen False. </RATIONALE> ... <FLAG> False </FLAG>
+
+        <EXAMPLE-4>
+        Query: what's the largest blackhole found by LIGO?
+        Output: <RATIONALE>  user has not mentioned to focus on any particular source. </RATIONALE> ... <FLAG> False </FLAG>        
+
+        <EXAMPLE-5>
+        Query: check labbooks for info about feedforward seismic noise cancellatio
+        Output: <RATIONALE>  specifically asking for lab-books </RATIONALE> ... <FLAG> True </FLAG>
+
+        <USER_QUERY>
+        {user_query}
+
+        <OUTPUT>:
+
+
+LEXICAL_FLAG_template:
+  params: 
+    - user_query
+  template: |
+        
+        <GUIDELINES>
+        1. Return the word True within <FLAG> tags, if the <USER_QUERY> is likely to contain technical keywords, acronymns, not-so-common terms etc.
+        7. Else return the word False 
+        8. Always fist explain ur rationale
+
+        <EXAMPLE-1>
+        Query: find info about redshift and luminosity distance
+        Output: <RATIONALE> question is about a relation in commonly used in astrophysics. and does not have any specific jargons </RATIONALE> . <FLAG> False </FLAG>
+
+        <EXAMPLE-2>
+        Query: check the recent measurement document for TCN 
+        Output: <RATIONALE>  query is asking about documents related to not so common technical term called TCN </RATIONALE> ... <FLAG> True </FLAG>
+
+        <EXAMPLE-3>
+        Query: check DCC and find what's the diameter of the SRM testmass?
+        Output: <RATIONALE>   query is asking about documents related to a ligo specific term called SRM  </RATIONALE> ... <FLAG> True </FLAG>
+
+        <EXAMPLE-4>
+        Query: what's the largest blackhole found by LIGO?
+        Output: <RATIONALE>  there is no rare words here. </RATIONALE> ... <FLAG> False </FLAG>        
+
+        <USER_QUERY>
+        {user_query}
+
+        <OUTPUT>:        
+
+
+UPDATE_REPORT_WITH_NEW_INFO_template:
+  params: 
+    - user_query
+    - existing_answer
+    - additional_context
+  template: |
+
+    <GUIDELINES>
+    1. Retain all the current information from existing <EXISTING_REPORT> that answers the QUERY and merge the <ADDITIONAL_REPORT> to create the <FINAL_DETAILED_REPORT>
+    2. Remember to retain all the information. Donot skip citations, urls and other key information from  both the <EXISTING_REPORT> and <ADDITIONAL_REPORT>
+    3. Maintain the same style as the existing <EXISTING_REPORT>
+    4. Donot add any extra informations, citations, links which are not there in either the  <EXISTING_REPORT> or the  <ADDITIONAL_REPORT>.
+    5. Use <FINAL_DETAILED_REPORT>...</FINAL_DETAILED_REPORT> tags for the FINAL_DETAILED_REPORT
+    6. Only generate the <New FINAL_DETAILED_REPORT> and nothing else. Donot explain the rationale etc.
+    </GUIDELINES>
+
+    <QUERY>
+    {user_query}   
+    </QUERY>
+
+    <EXISTING_REPORT>
+    {existing_answer}
+    </EXISTING_REPORT>
+
+    <ADDITIONAL_REPORT>
+    ------------
+    {additional_context}
+    ------------
+    </ADDITIONAL_REPORT>
+
+    <FINAL_DETAILED_REPORT>
+    """        
+
+DEEPSEARCH_SUBQUERY_template:
+  params: 
+    - root_query
+    - existing_context
+    - existing_subqueries
+  template: |
+
+    <GUIDELINES>
+    1. Given the <ROOT_QUERY> ,  available <EXISTING_CONTEXT> and already asked <EXISTING_SUBQUERIES>, generate ONE distinct follow-up  <DISTINCT_SUBQUERY> that will help find a wel-rounded answer to the original <ROOT_QUERY>.
+    2. <DISTINCT_SUBQUERY> should be a very concise, precise and short. It should be a single sentence query.
+    3. Ensure diversity of the <DISTINCT_SUBQUERY> but make sure it still related to the <ROOT_QUERY>.
+    4. Use <DISTINCT_SUBQUERY>...</DISTINCT_SUBQUERY> tags for the DISTINCT_SUBQUERY
+    5. Only generate the *only* one  <DISTINCT_SUBQUERY> and nothing else. Donot explain the rationale etc.
+    </GUIDELINES>
+
+    <ROOT_QUERY>
+    {root_query}   
+    </ROOT_QUERY>
+
+    <EXISTING_CONTEXT>
+    ------------
+    {existing_context}
+    ------------
+    </EXISTING_CONTEXT>
+
+    <EXISTING_SUBQUERIES>
+    {existing_subqueries}
+    </EXISTING_SUBQUERIES>
+
+    <DISTINCT_SUBQUERY>
+    """            
+
+DATETIME_REQUIREMENT_CHECK_template:
+  params: 
+    - user_query
+  template: |
+
+    <GUIDELINES>
+    1. Return True <user_query> is related to a date-time depedance and would benefit from including current date for search, sort and ranking purposes.
+    2. Return True when the recent documents can be potentially more beneficial than older ones.
+    3. Return True when user asks for anything that requires sorting. For example whenever terms similar to largest, biggest, latest, smallest, known so far, upto now, current etc or similar are involved.
+    4. Else return the word False 
+    8. Only generate True or False. Donot explain the rationale etc.
+    </GUIDELINES>
+
+    #EXAMPLE-1 (recent events)
+    <TEXT>: show me info about largest blackhole detected?
+    <ANSWER> >: True
+
+    #EXAMPLE-2 (well known facts )
+    <TEXT>: when was Einstein born?
+    <ANSWER>: False
+
+    #EXAMPLE-3 (looking for latest documents)
+    <TEXT>: i would like the know the requirements of the internal stabilization loop?
+    <ANSWER>: True
+
+
+    <TEXT>: {user_query}
+    <ANSWER>:   
+
+
+
+LLM_QUERY_INTENT_ROUTER_PROMPT_CHECK_template:
+  params:
+    - user_input
+    - history
+    - prev_answer
+  template: |
+    You are an intent router for a QA/RAG assistant.
+
+    Decide if the user's message should be handled WITHOUT retrieval (i.e., using only conversation history),
+    or if it SHOULD run retrieval/search.
+
+    Return ONLY valid JSON with this schema:
+    {{
+      "intent": "RECALL" | "POSTPROCESS" | "SEARCH",
+      "needs_retrieval": true | false,
+      "confidence": 0.0-1.0,
+      "reason": "short reason"
+    }}
+
+    Rules:
+    - RECALL: user asks to summarize/recap what we talked about, what was said earlier, previous answer,
+      "remind me", "what did I ask", "what did you say", "where did we leave off", etc.
+    - POSTPROCESS: user asks to transform the previous answer (table/bullets/shorter/longer/rewrite/extract).
+    - SEARCH: user asks a new factual question that requires external docs/tools, OR the chat history is empty/insufficient.
+    - If the chat history is empty or does not contain enough info to answer, choose SEARCH.
+    - Be robust to short vague prompts.
+
+    User message:
+    {user_input}
+
+    Chat history (may be summarized, may be partial):
+    {history}
+
+    Last assistant answer (may be empty):
+    {prev_answer}
+
+
+AUTO_CONVERSATION_TITLE_template:
+  params:
+    - context
+  template: |
+    Using six words or fewer, create a short conversation title that summarizes the user queries below.
+    Output only the title and nothing else.
+
+    User queries:
+    {context}
+
+WELCOME_MESSAGE_REPHRASE_template:
+  params:
+    - text
+  template: |
+    Rephrase the following in English as a single line.
+    Do not add anything else.
+
+    Text:
+    {text}
+
+CONVERSATION_RECALL_ANSWER_template:
+  params:
+    - user_input
+    - history
+  template: |
+    You are answering a user based only on the provided chat history.
+
+    The user message:
+    {user_input}
+
+    Chat history:
+    {history}
+
+    If the user asked to recap/summarize:
+    - Provide 3-7 bullet points.
+    - Mention any open questions / next steps.
+    - Do not invent details not present in the chat history.
+
+    If the user asked about a specific earlier detail, answer from the history if possible; otherwise say you can't find it in the history.
+
+ACRONYM_DEFINITION_SUMMARY_template:
+  params:
+    - text
+  template: |
+    From the <TEXT> below, extract any acronyms and their definitions.
+    Return a single concise line formatted as: "ACRO1: definition; ACRO2: definition".
+    If no acronyms are present, return an empty string.
+
+    <TEXT>
+    {text}
+    </TEXT>
+
+DCC_SEARCH_INTENT_template:
+  params:
+    - user_query
+  template: |
+    Return True if USER_QUERY is asking to search LIGO Public DCC for documents from a specific author/person.
+    Otherwise return False.
+    Return only True or False.
+
+    USER_QUERY:
+    {user_query}
+
+DCC_AUTHOR_EXTRACT_template:
+  params:
+    - user_query
+  template: |
+    Extract the author/person name from USER_QUERY for searching LIGO Public DCC.
+    Return only the name. If no name is present, return an empty string.
+
+    USER_QUERY:
+    {user_query}
+
+DCC_AUTHOR_ID_EXTRACT_template:
+  params:
+    - user_query
+    - fuzzy_search_output
+  template: |
+    You are selecting an author ID for a LIGO Public DCC search.
+
+    USER_QUERY:
+    {user_query}
+
+    Candidate matches (name, author_id, score):
+    {fuzzy_search_output}
+
+    Return ONLY the best author_id wrapped like:
+    <AUTHORID>AUTHOR_ID_HERE</AUTHORID>
+
+DCC_FUZZY_QUERY_template:
+  params:
+    - user_query
+    - keywords
+  template: |
+    You are creating a keyword query for searching LIGO Public DCC documents.
+
+    USER_QUERY:
+    {user_query}
+
+    Candidate keywords / matches:
+    {keywords}
+
+    Return ONLY the final keyword query wrapped like:
+    <KEYWORDS>your keyword query</KEYWORDS>
+
+DCC_FORMAT_DOCS_RESPONSE_template:
+  params:
+    - user_query
+    - public_dcc_docs
+  template: |
+    Format the LIGO Public DCC results for the user.
+
+    USER_QUERY:
+    {user_query}
+
+    Public DCC Documents:
+    {public_dcc_docs}
+
+    Requirements:
+    - Output Markdown.
+    - Include every document provided.
+    - Present as a table with columns: Title, DCC ID, Link.
+    - If a field is missing, leave it blank but keep the row.
+
+DCC_DOCS_PRESENCE_CHECK_template:
+  params:
+    - user_query
+    - response_result
+  template: |
+    Return True if RESPONSE_RESULT contains at least one LIGO Public DCC document reference (a DCC ID and/or a DCC link).
+    Otherwise return False.
+    Return only True or False.
+
+    USER_QUERY:
+    {user_query}
+
+    RESPONSE_RESULT:
+    {response_result}
+
+GW_DETECTOR_STATUS_INTENT_template:
+  params:
+    - user_query
+  template: |
+    Return True if USER_QUERY is asking for detector status / observing state / range / sensitivity now (or recent).
+    Otherwise return False.
+    Return only True or False.
+
+    USER_QUERY:
+    {user_query}

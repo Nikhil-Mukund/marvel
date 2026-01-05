@@ -1,0 +1,6 @@
+enable_multi_llm_response_aggregation: false # no longer used
+enable_superposition_answer: true  # Overides RetrievalQA
+enable_dynamic_vec_db_selection: false  # no longer used
+
+# INITILIASED (changed below based on slider)
+enable_context_llm_filtering: 0 # OLD one
