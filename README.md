@@ -1,6 +1,6 @@
 # MARVEL: A Multi‑Agent Research Validator and Enabler using LLMs
 
-MARVEL [ligogpt.mit.edu/marvel](https://ligogpt.mit.edu/marvel) is a locally deployable, open‑source framework for domain‑aware question answering and assisted research. It combines a fast path for straightforward queries with a **DeepSearch** mode that integrates retrieval‑augmented generation (RAG) and Monte‑Carlo Tree Search to explore complementary sub‑queries and synthesise evidence without duplication. It draws on a curated semantic index of literature, internal/public documents, and (optionally) targeted web searches, with stable citation tracking throughout.
+MARVEL is a locally deployable, open‑source framework for domain‑aware question answering and assisted research. It combines a fast path for straightforward queries with a **DeepSearch** mode that integrates retrieval‑augmented generation (RAG) and Monte‑Carlo Tree Search to explore complementary sub‑queries and synthesise evidence without duplication. It draws on a curated semantic index of literature, internal/public documents, and (optionally) targeted web searches, with stable citation tracking throughout.
 
 Developed by: Nikhil Mukund, Yifang Luo, Fan Zhang, Erik Katsavounidis and Lisa Barsotti, with support from the MIT Kavli Institute for Astrophysics and Space Research & LIGO Laboratory, and the NSF AI Institute for Artificial Intelligence and Fundamental Interactions.
 
@@ -14,6 +14,7 @@ Developed by: Nikhil Mukund, Yifang Luo, Fan Zhang, Erik Katsavounidis a
 - `faiss/` — persisted FAISS vector stores (`./faiss/<DatasetName>/`)
 - `environments/` — conda environment definitions (Linux/macOS/Windows)
 - `scripts/setup/setup_conda_env.py` — helper for creating the conda env
+- `scripts/evaluation/datasets/` — evaluation datasets + schema docs (see [`scripts/evaluation/datasets/README.md`](scripts/evaluation/datasets/README.md))
 
 ---
 
@@ -397,6 +398,43 @@ To add a new input type (e.g., `DocText`, `CSVData`, etc.):
    - and (optionally) `faiss_vector_store_merges` if you want it included in `ALL_V2`.
 
 ---
+
+## Evaluation datasets (RAGAS JSONL)
+
+If you want to reproduce or inspect the benchmark results, MARVEL includes **per‑sample RAGAS metrics** and the
+corresponding QA examples + model answers under:
+
+- `scripts/evaluation/datasets/`  (see [`scripts/evaluation/datasets/README.md`](scripts/evaluation/datasets/README.md) for full details)
+
+### What’s in this folder
+
+All evaluation files are **newline‑delimited JSON** (`.jsonl`) with **one JSON object per line** (UTF‑8). Each
+record includes the QA sample (question, context, reference/ground‑truth answer), the baseline model answer(s),
+MARVEL answer(s), and RAGAS metrics (typically floats in **[0, 1]**; higher is better). Some metric values may be
+`null` if they could not be computed.
+
+### Files included
+
+**Full sets (Baseline vs MARVEL‑Standard)**  
+- `eval_ArxivData_gpt4o-mini_vs_MARVEL-Standard.jsonl` — **N = 910** *(ArXiv‑derived set; in this repo the same corpus is typically referred to as `LatexData`)*  
+- `eval_LogbookData_gpt4o-mini_vs_MARVEL-Standard.jsonl` — **N = 696**
+
+**DeepSearch subset (Baseline vs MARVEL‑Standard vs MARVEL‑DeepSearch)**  
+- `eval_ArxivData_gpt4o-mini_vs_MARVEL-Standard_vs_MARVEL-DeepSearch.jsonl` — **N = 168**  
+- `eval_LogbookData_gpt4o-mini_vs_MARVEL-Standard_vs_MARVEL-DeepSearch.jsonl` — **N = 135**
+
+### Quick loading example
+
+```python
+import pandas as pd
+
+df = pd.read_json(
+    "scripts/evaluation/datasets/eval_ArxivData_gpt4o-mini_vs_MARVEL-Standard.jsonl",
+    lines=True
+)
+print(df.columns)
+```
+
 
 ## Running MARVEL
 
