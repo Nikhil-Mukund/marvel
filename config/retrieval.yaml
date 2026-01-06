@@ -17,8 +17,8 @@ chunk_size: 1500  # old:1500 but 1500 causes issues with ColBERTv2, 512 seems OK
 chunk_overlap: 500  # old:500
 
 # Retrieval Doc Params
-max_return_docs: 40 #40
-initial_retrieval_count: 50  # 50 for BM25 & FAISS
+max_return_docs: 10 #40
+initial_retrieval_count: 20  # 50 for BM25 & FAISS
 enable_hyde: false # HyDE: Augment Query with hypothetical answer、
 
 # Groq API Cloud inference
