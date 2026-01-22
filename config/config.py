@@ -15,12 +15,15 @@ def load_config():
                 prompts = yaml.safe_load(f)
             with open('./config/generate.yaml', 'r',encoding='utf-8') as f:
                 generate = yaml.safe_load(f)
-                
+            with open('./config/server.yaml', 'r',encoding='utf-8') as f:
+                server = yaml.safe_load(f)
+
             config['models'] = models
             config['data'] = data
             config['retrieval'] = retrieval
             config['prompts'] = prompts
             config['generate'] = generate
+            config['server'] = server
         except yaml.YAMLError as e:
             print(e)
     # print(config)

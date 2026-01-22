@@ -15,6 +15,7 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         print(f"Error occurred while executing: {' '.join(command)}")
         print(e)
+        print(f"Error: {e.stderr}")
         sys.exit(1)
 
 def check_conda_installed():
@@ -36,7 +37,7 @@ def create_conda_env():
     user_home = os.path.expanduser("~")  # This gets the home directory path in a cross-platform way
     env_path = os.path.join(user_home, "miniconda", "envs", env_name)
     print(f"Creating environment at: {env_path}")
-    run_command(["conda", "env", "create", "-f", "environment.yml", "--prefix", env_path])
+    run_command(["conda", "env", "create", "-f", "environments/environment.yml", "--prefix", env_path])
 
 def main():
     # Check if Conda is installed
