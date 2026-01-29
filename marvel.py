@@ -350,31 +350,20 @@ elif sidebar_tab == "SearchFunctions":
         # Retrieval engines selection
         if enable_search_type_selection:
             st.subheader("Retrieval Engines")
-            st.session_state.tavily_selected = st.checkbox(
-                "Use Web Search",
-                value=st.session_state.tavily_selected,
-                key="use_tavily_web_search_cb",
-            )
-            st.session_state.faiss_selected = st.checkbox(
-                "Use Semantic Search",
-                value=st.session_state.faiss_selected,
-                key="use_faiss_semantic_search_cb",
-            )
-            st.session_state.heyligo_selected = st.checkbox(
-                "Use Logbook Search",
-                value=st.session_state.heyligo_selected,
-                key="use_heyligo_search_cb",
-            )
-            st.session_state.bm25_selected = st.checkbox(
-                "Use Keyword Search",
-                value=st.session_state.bm25_selected,
-                key="use_bm25_lexical_search_cb",
-            )
-            st.session_state.cache_enabled = st.checkbox(
-                "Use Cached Answers",
-                value=st.session_state.cache_enabled,
-                key="use_cached_search_cb",
-            )            
+            search_options = [
+                ("tavily_selected", "Use Web Search", "use_tavily_web_search_cb"),
+                ("faiss_selected",  "Use Semantic Search", "use_faiss_semantic_search_cb"),
+                ("heyligo_selected", "Use Logbook Search", "use_heyligo_search_cb"),
+                ("bm25_selected",   "Use Keyword Search", "use_bm25_lexical_search_cb"),
+                ("cache_enabled",   "Use Cached Answers", "use_cached_search_cb"),
+            ]
+            # generate checkbox
+            for var_name, label, key_name in search_options:
+                st.session_state[var_name] = st.checkbox(
+                    label,
+                    value=st.session_state.get(var_name, False),
+                    key=key_name
+                )
         else:
             st.caption("All retrieval engines are enabled (fixed by configuration).")
 
@@ -837,125 +826,65 @@ parser = argparse.ArgumentParser(description='Filter out URL argument.')
 st.session_state.useGroq = configs['retrieval']['enable_groq_inference_for_public_docs']
 
 if not st.session_state.useGroq:
-    if 'llm' not in st.session_state:
-        st.session_state.llm = Ollama(base_url=configs['server']['ollama']['base_url'],
-                                    model=configs['models']['primary_llm_model'],
-                                    verbose=configs['retrieval']['enable_verbose'],
-                                    callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
-        print(f"\n Loaded PRIMARY_LLM_MODEL: {st.session_state.llm.model}")
-    
-
-
-    # SECONDARY_LLM_MODEL
-    if 'llm_2' not in st.session_state:
-        # check if llm_2 is not loaded
-        if 'llm_2' not in st.session_state:
-            st.session_state.llm_2 = Ollama(base_url=configs['server']['ollama']['base_url'],
-                                            model=configs['models']['secondary_llm_model'],
-                                            verbose=configs['retrieval']['enable_verbose'],
-                                            callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
-            print(f"\n Loaded AUX LLM_2 model: {st.session_state.llm_2.model}")
-
+    # Load LLMs
+    for idx, key, model_key in [
+        (1, 'llm', 'primary_llm_model'),
+        (2, 'llm_2', 'secondary_llm_model'),
+        (3, 'llm_3', 'tertiary_llm_model'),
+        (4, 'llm_4', 'quaternary_llm_model'),
+        (5, 'llm_5', 'fifth_llm_model'),
+        (6, 'llm_query_improve', 'primary_llm_model'),
+    ]:
+        if key not in st.session_state:
+            st.session_state[key] = Ollama(
+                base_url=configs['server']['ollama']['base_url'],
+                model=configs['models'][model_key],
+                verbose=configs['retrieval']['enable_verbose'],
+                callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
+            )
+            print(f"\n Loaded AUX LLM_{idx} model: {getattr(st.session_state[key], 'model', None)}")
     # LLM USER_QUERY_IMPROVE_MODEL
-    if 'llm_query_improve' not in st.session_state:
-        st.session_state.llm_query_improve = Ollama(base_url=configs['server']['ollama']['base_url'],
-                                    model=configs['models']['primary_llm_model'],
-                                    verbose=configs['retrieval']['enable_verbose'],
-                                    callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
-        print(
-            f"\n Loaded QUERY AUGMENTING LLM model: {st.session_state.llm_query_improve.model}")
+    print(f"\n Loaded QUERY AUGMENTING LLM model: {st.session_state.llm_query_improve.model}")
         
 else:
     print("Using Groq Cloud Inference API for Public Docs")
-    if 'llm' not in st.session_state:
-        st.session_state.llm = GroqLLMWrapper(
-            model=configs['models']['primary_groq_llm_model'],
-            temperature=0,
-            max_tokens=None,
-            max_retries=st.session_state.GROQ_TIMEOUT_MAX_TRIES,
-            http_client=st.session_state.groq_httpx,  # <-- add this
-        )
+    groq_models_to_load = [
+        ("llm", "primary_groq_llm_model", "PRIMARY"),
+        ("llm_2", "secondary_groq_llm_model", "SECONDARY"),
+        ("llm_3", "tertiary_groq_llm_model", "TERTIARY"),
+        ("llm_4", "quaternary_groq_llm_model", "QUATERNARY"),
+        ("llm_5", "fifth_groq_llm_model", "FIFTH"),
+        ("llm_query_improve", "query_improvement_groq_model", "QUERY AUGMENTING")
+    ]
+    ollama_models_to_load = [
+        ("ollama_llm", "primary_llm_model", "PRIMARY"),
+        ("ollama_llm_2", "secondary_llm_model", "SECONDARY"),
+        ("ollama_llm_3", "tertiary_llm_model", "TERTIARY")
+    ]
 
-    print(f"\n Loaded API-Based PRIMARY_LLM_MODEL:GROQ-{configs['models']['primary_groq_llm_model']}")
+    print("Using Groq Cloud Inference API for Public Docs")
+    # Load GROQ models
+    for state_key, config_key, label in groq_models_to_load:
+        if state_key not in st.session_state:
+            st.session_state[state_key] = GroqLLMWrapper(
+                model=configs['models'][config_key],
+                temperature=0,
+                max_tokens=None,
+                max_retries=st.session_state.GROQ_TIMEOUT_MAX_TRIES,
+                http_client=st.session_state.groq_httpx,
+            )
+        print(f"\n Loaded API-Based {label}_LLM_MODEL: GROQ-{configs['models'][config_key]}")
 
-    # LOCAL PRIMARY_LLM_MODEL
-    if 'ollama_llm' not in st.session_state:
-        st.session_state.ollama_llm = Ollama(base_url=configs['server']['ollama']['base_url'],
-                                    model=configs['models']['primary_llm_model'],
-                                    verbose=configs['retrieval']['enable_verbose'],
-                                    callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
-    print(f"\n Loaded Local PRIMARY_LLM_MODEL: {st.session_state.ollama_llm.model}")    
-
-
-    if 'llm_2' not in st.session_state:
-        st.session_state.llm_2 = GroqLLMWrapper(
-            model=configs['models']['secondary_groq_llm_model'],
-            temperature=0,
-            max_tokens=None,
-            max_retries=st.session_state.GROQ_TIMEOUT_MAX_TRIES,
-            http_client=st.session_state.groq_httpx,  # <-- add this
-        )
-        
-    print(f"\n Loaded API-BAsed SECONDARY_LLM_MODEL: GROQ-{configs['models']['secondary_groq_llm_model']}")
-
-
-    # LOCAL SECONDARY_LLM_MODEL
-    if 'ollama_llm_2' not in st.session_state:    
-        st.session_state.ollama_llm_2 = Ollama(base_url=configs['server']['ollama']['base_url'],
-                                    model=configs['models']['secondary_llm_model'],
-                                    verbose=configs['retrieval']['enable_verbose'],
-                                    callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
-    print(f"\n Loaded Local secondary_LLM_MODEL: {st.session_state.ollama_llm_2.model}")      
-
-    # LOCAL TERTIARY_LLM_MODEL
-    if 'ollama_llm_3' not in st.session_state:      
-        st.session_state.ollama_llm_3 = Ollama(base_url=configs['server']['ollama']['base_url'],
-                                    model=configs['models']['tertiary_llm_model'],
-                                    verbose=configs['retrieval']['enable_verbose'],
-                                    callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
-    print(f"\n Loaded Local secondary_LLM_MODEL: {st.session_state.ollama_llm_3.model}")            
-        
-    if 'llm_query_improve' not in st.session_state:
-        st.session_state.llm_query_improve  = GroqLLMWrapper(
-    model=configs['models']['query_improvement_groq_model'],
-    temperature=0,
-    max_tokens=None,
-    http_client=st.session_state.groq_httpx,  # <-- add this
-    max_retries=st.session_state.GROQ_TIMEOUT_MAX_TRIES,
-)
-    print(f"\n Loaded QUERY AUGMENTING LLM : GROQ-{configs['models']['primary_groq_llm_model']}")
-             
-        
-    if 'llm_3' not in st.session_state:
-        st.session_state.llm_3  = GroqLLMWrapper(
-    model=configs['models']['tertiary_groq_llm_model'],
-    temperature=0,
-    max_tokens=None,
-    http_client=st.session_state.groq_httpx,  # <-- add this
-    max_retries=st.session_state.GROQ_TIMEOUT_MAX_TRIES,
-)
-    print(f"\n Loaded API-BAsed TERTIARY_LLM_MODEL: GROQ-{configs['models']['tertiary_groq_llm_model']}")
-
-    if 'llm_4' not in st.session_state:
-        st.session_state.llm_4  = GroqLLMWrapper(
-    model=configs['models']['quaternary_groq_llm_model'],
-    temperature=0,
-    max_tokens=None,
-    max_retries=st.session_state.GROQ_TIMEOUT_MAX_TRIES,
-    http_client=st.session_state.groq_httpx,  # <-- add this
-)
-    print(f"\n Loaded API-BAsed QUATERNARY_LLM_MODEL: GROQ-{configs['models']['quaternary_groq_llm_model']}")
-
-    if 'llm_5' not in st.session_state:
-        st.session_state.llm_5  = GroqLLMWrapper(
-    model=configs['models']['fifth_groq_llm_model'],
-    temperature=0,
-    max_tokens=None,
-    max_retries=st.session_state.GROQ_TIMEOUT_MAX_TRIES,
-    http_client=st.session_state.groq_httpx,  # <-- add this
-)
-    print(f"\n Loaded API-BAsed QUATERNARY_LLM_MODEL: GROQ-{configs['models']['fifth_groq_llm_model']}")    
-
+    # Load Ollama models
+    for state_key, config_key, label in ollama_models_to_load:
+        if state_key not in st.session_state:
+            st.session_state[state_key] = Ollama(
+                base_url=configs['server']['ollama']['base_url'],
+                model=configs['models'][config_key],
+                verbose=configs['retrieval']['enable_verbose'],
+                callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
+            )
+        print(f"\n Loaded Local {label}_LLM_MODEL: {st.session_state[state_key].model}")
 
 
 # Now import RAG_STAR 
@@ -1919,11 +1848,17 @@ def ensembele_superposition_answer(
                             faiss_persist_directory)
                         print(f"FAISS vectorstore loaded.")
                     else:
+                        BASE_RAG_PATH = "./RAG_DataSets"
+                        datasets_config = configs['data']['datasets']
                         RAG_DataSet_directory = f"./RAG_DataSets/{configs['data']['datasets']}/"
                         if os.path.normpath(faiss_persist_directory) != os.path.normpath("./faiss/ALL_V2"):
-                            print(
-                                f"{faiss_persist_directory} Directory does not exist. Creating a new one")
+                            print(f"{faiss_persist_directory} Directory does not exist. Creating a new one")
                             print(f"RAG Data directory:{RAG_DataSet_directory} ")
+                            common_params = {
+                                'chunk_size': configs['retrieval']['chunk_size'],
+                                'chunk_overlap': configs['retrieval']['chunk_overlap']
+                            }
+
                             if os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/ArxivData/"):
                                 all_splits_data = fetch_arxiv_abstracts(
                                     keyword=configs['retrieval']['arxiv_keyword'],
@@ -1933,76 +1868,37 @@ def ensembele_superposition_answer(
                                     max_results_per_year=configs['retrieval']['arxiv_max_results_per_year'],
                                     max_try=configs['retrieval']['arxiv_max_try']
                                 )
-                            elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/DocPDF/"):
-                                all_splits_data = extract_pdf_data_V3(
-                                    RAG_DataSet_directory,
-                                    chunk_size=configs['retrieval']['chunk_size'],
-                                    chunk_overlap=configs['retrieval']['chunk_overlap'],
-                                    extraction_method=configs['data']['pdf_extraction_method']
-                                )
-                            elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/TextData/"):
-                                all_splits_data = extract_text_data(
-                                    RAG_DataSet_directory,
-                                    chunk_size=configs['retrieval']['chunk_size'],
-                                    chunk_overlap=configs['retrieval']['chunk_overlap']
-                                )
-                            elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/AudioTextData/"):
-                                all_splits_data = extract_text_data(
-                                    RAG_DataSet_directory,
-                                    chunk_size=configs['retrieval']['chunk_size'],
-                                    chunk_overlap=configs['retrieval']['chunk_overlap']
-                                )
-                            elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/LatexData/"):
-                                all_splits_data = extract_latex_data(
-                                    RAG_DataSet_directory,
-                                    chunk_size=configs['retrieval']['chunk_size'],
-                                    chunk_overlap=configs['retrieval']['chunk_overlap']
-                                )
-                            elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/JSONLData/"):
-                                all_splits_data = extract_JSONL_data(
-                                    RAG_DataSet_directory,
-                                    chunk_size=configs['retrieval']['chunk_size']
-                                )
-                            elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/LogbookData/"):
-                                all_splits_data = extract_heyligo_ProFreports_csv_data(
-                                    RAG_DataSet_directory,
-                                    chunk_size=configs['retrieval']['chunk_size']
-                                )
-
-                            # COMBINED
+                                
                             elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/ALL_V2/"):
-                                all_splits_data_ArxivData_data = fetch_arxiv_abstracts(
+                                arxiv = fetch_arxiv_abstracts(
                                     keyword=configs['retrieval']['arxiv_keyword'],
                                     start_date_str=configs['retrieval']['arxiv_start_date_str'],
-                                    end_date_str=datetime.now().strftime(
-                                        '%Y-%m-%d') if configs['retrieval']['arxiv_start_date_str'] == "now" else configs['retrieval']['arxiv_start_date_str'],
+                                    end_date_str=datetime.now().strftime('%Y-%m-%d') if configs['retrieval']['arxiv_start_date_str'] == "now" else configs['retrieval']['arxiv_start_date_str'],
                                     max_results_per_year=configs['retrieval']['arxiv_max_results_per_year'],
                                     max_try=configs['retrieval']['arxiv_max_try']
                                 )
-                                all_splits_LatexData_data = extract_latex_data(
-                                    "./RAG_DataSets/LatexData/",
-                                    chunk_size=configs['retrieval']['chunk_size'],
-                                    chunk_overlap=configs['retrieval']['chunk_overlap']
-                                )
-                            elif os.path.normpath(RAG_DataSet_directory) == os.path.normpath("./RAG_DataSets/TextData/"):
-                                all_splits_data_TextData = extract_text_data(
-                                    "./RAG_DataSets/TextData/",
-                                    chunk_size=configs['retrieval']['chunk_size'],
-                                    chunk_overlap=configs['retrieval']['chunk_overlap']
-                                )
-                                all_splits_DocPDF_data = extract_pdf_data_V3(
-                                    "./RAG_DataSets/DocPDF/",
-                                    chunk_size=configs['retrieval']['chunk_size'],
-                                    chunk_overlap=configs['retrieval']['chunk_overlap'],
-                                    extraction_method=configs['data']['pdf_extraction_method']
-                                )
-                                all_splits_JSONL_data = extract_JSONL_data(
-                                    "./RAG_DataSets/JSONLData/",
-                                    chunk_size=configs['retrieval']['chunk_size']
-                                )
-                                # ADD HERE is new folders are included
-                            all_splits_data = all_splits_data_ArxivData_data + all_splits_DocPDF_data + \
-                                all_splits_LatexData_data + all_splits_JSONL_data
+                                latex = extract_latex_data(f"{BASE_RAG_PATH}/LatexData/", **common_params)
+                                text = extract_text_data(f"{BASE_RAG_PATH}/TextData/", **common_params)
+                                pdf = extract_pdf_data_V3(f"{BASE_RAG_PATH}/DocPDF/", extraction_method=configs['data']['pdf_extraction_method'], **common_params)
+                                jsonl = extract_JSONL_data(f"{BASE_RAG_PATH}/JSONLData/", chunk_size=common_params['chunk_size'])
+                                
+                                all_splits_data = arxiv + pdf + latex + jsonl
+
+                            else:
+                                handler_map = {
+                                    "DocPDF": lambda path: extract_pdf_data_V3(path, extraction_method=configs['data']['pdf_extraction_method'], **common_params),
+                                    "TextData": lambda path: extract_text_data(path, **common_params),
+                                    "AudioTextData": lambda path: extract_text_data(path, **common_params),
+                                    "LatexData": lambda path: extract_latex_data(path, **common_params),
+                                    "JSONLData": lambda path: extract_JSONL_data(path, chunk_size=common_params['chunk_size']),
+                                    "LogbookData": lambda path: extract_heyligo_ProFreports_csv_data(path, chunk_size=common_params['chunk_size']),
+                                }
+
+                                if datasets_config in handler_map:
+                                    all_splits_data = handler_map[datasets_config](RAG_DataSet_directory)
+                                else:
+                                    all_splits_data = []
+
                             all_splits = all_splits_data
                             random.shuffle(all_splits)
                             if configs['retrieval']['enable_limit_max_embed_docs']:
