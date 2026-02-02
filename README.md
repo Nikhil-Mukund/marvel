@@ -2,6 +2,10 @@
 
 [![DOI](https://zenodo.org/badge/1121643405.svg)](https://doi.org/10.5281/zenodo.18156826)
 
+**Associated paper:**  
+N. Mukund *et al.*, *MARVEL: A Multi-Agent Research Validator and Enabler using LLMs*, arXiv:2601.03436  
+https://arxiv.org/abs/2601.03436
+
 MARVEL [ligogpt.mit.edu/marvel](https://ligogpt.mit.edu/marvel) is a locally deployable, open-source framework for domain-aware question answering and assisted research.
 
 It combines a fast path for straightforward queries with a **DeepSearch** mode that integrates retrieval‑augmented generation (RAG) and Monte‑Carlo Tree Search to explore complementary sub‑queries and synthesise evidence without duplication. It draws on a curated semantic index of literature, internal/public documents, and (optionally) targeted web searches, with stable citation tracking throughout.
