@@ -8,6 +8,16 @@ It combines a fast path for straightforward queries with a **DeepSearch** mode t
 
 Developed by: Nikhil Mukund, Yifang Luo, Fan Zhang, Erik Katsavounidis and Lisa Barsotti, with support from the MIT Kavli Institute for Astrophysics and Space Research & LIGO Laboratory, and the NSF AI Institute for Artificial Intelligence and Fundamental Interactions.
 
+## Code documentation (auto-generated)
+
+An automatically generated, browsable overview of the MARVEL source code is available at:
+
+https://deepwiki.com/Nikhil-Mukund/marvel
+
+This documentation is generated directly from the GitHub repository using an automated code analysis tool, and is intended to help developers and contributors quickly navigate the codebase, understand module structure, and trace key execution paths.  
+For authoritative details, the source code in this repository remains the primary reference.
+
+
 ---
 
 ## Repository layout (high level)
