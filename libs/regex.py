@@ -487,3 +487,34 @@ def latexify_documents(docs: List[Any]) -> List[Document]:
         d.page_content = "".join(parts)
         fixed.append(d)
     return fixed
+
+def _pp_output_to_text(x) -> str:
+    """Coerce LLM JSON 'output' field into a displayable string safely."""
+    if x is None:
+        return ""
+    if isinstance(x, str):
+        return x
+
+    # If the model returns a list (common for links)
+    if isinstance(x, list):
+        # list[dict] => try to format nicely
+        if x and all(isinstance(i, dict) for i in x):
+            lines = []
+            for i in x:
+                url = (i.get("url") or i.get("link") or i.get("href") or "").strip()
+                note = (i.get("note") or i.get("title") or i.get("desc") or "").strip()
+                if url and note:
+                    lines.append(f"- {url} — {note}")
+                elif url:
+                    lines.append(f"- {url}")
+                else:
+                    lines.append(f"- {json.dumps(i, ensure_ascii=False)}")
+            return "\n".join(lines)
+        # list[str] or mixed
+        return "\n".join(f"- {str(i)}" for i in x)
+
+    # dict => pretty JSON
+    if isinstance(x, dict):
+        return json.dumps(x, ensure_ascii=False, indent=2)
+
+    return str(x)
