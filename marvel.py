@@ -46,7 +46,7 @@ from init import faiss_embeddings_init, ragatouille_init
 from libs.faiss import save_faiss_vectorstore, load_faiss_vectorstore, get_docs_from_faiss_vectorstore
 from libs.print import print_wide_line_message, pretty_print_docs,streamlit_add_msg,streamlit_add_line,streamlit_add_bold_heading
 from libs.retrievers import fetch_arxiv_abstracts,generate_wiki_summary_from_langchain_docs
-from libs.prompts import prompt
+from libs.prompts import get_prompt
 from libs.content import preprocess_page_content_text, diagnostic_print_RAG_chunks, print_langchain_documents
 
 from libs.regex import escape_braces, nicely_format_latex_eqns, validate_and_replace_urls, add_color_filename_tags, convert_all_latex_delimiters,replace_plus_in_url_paths,wrap_urls_in_angle_brackets,wrap_urls_in_metadata,normalize_quotes,extract_answer_or_raw,_pp_output_to_text

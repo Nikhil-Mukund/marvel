@@ -2,6 +2,8 @@
 primary_llm_model: gemma3:27b-it-qat  #mistral-nemo:latest,gemma3:27b-it-qat 
 secondary_llm_model: qwen2.5:latest #qwen2:latest
 tertiary_llm_model: mistral-nemo:latest #qwen2:latest
+quaternary_llm_model: mistral-nemo:latest #qwen2:latest
+fifth_llm_model: mistral-nemo:latest #qwen2:latest
 
 
 

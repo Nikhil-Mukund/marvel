@@ -37,6 +37,7 @@ from config import config
 import libs.summarizer_v3 # ensure module is in sys.modules before get_type_hints
 from libs.summarizer_v3 import langgraph_summarize_documents,langgraph_task_specific_document_processing
 from libs.regex import extract_answer_or_raw
+from libs.prompts import get_prompt
 
 
 # -----------------------------------------------------------------------------
@@ -258,48 +259,21 @@ def llm_planner_subqueries(
             raise RuntimeError("llm_planner_subqueries requires `llm_fn` or st.session_state.llm")
 
     ctx = context_text[:2500]
-    prev = "\n".join(f"- {q}" for q in prev_asked[:40])
+    prev_str = "\n".join(f"- {q}" for q in prev_asked[:40])
+    existing_str = "\n".join(f"- {q}" for q in existing) if existing else ""
+    prompt_text = get_prompt(
+        "LLM_PLANNER_SUBQUERIES_template", 
+        {
+            "root_query": root_query,
+            "parent_query": parent_query,
+            "context": ctx,
+            "existing_siblings": existing_str,
+            "previously_asked": prev_str,
+            "max_out": str(max_out)
+        }
+    )
 
-    prompt = f"""
-You are a planning assistant for multi-hop scientific question answering.
-Propose DISTINCT, TARGETED sub-questions that, if answered, would materially help to answer the user's
-original query. Do not assume domain specifics (journals, subfields); infer from inputs.
-
-REQUIREMENTS
-1) DECOMPOSE if multiple named entities (people, projects, instruments, datasets, facilities, collaborations,
-   topics) are present. Ensure coverage ACROSS entities, not only joint phrasing.
-2) DIVERSIFY FACETS: contributions/findings; methods/instrumentation; datasets/evidence; collaborators;
-   chronology (early vs recent); impact/validation/metrics; comparisons/contrasts; and one integrative
-   “synthesis” question if budget allows.
-3) AVOID DUPLICATES (semantic paraphrases): Do NOT repeat anything listed under `Existing siblings` or
-   `Previously asked in the tree`.
-4) OUTPUT FORMAT: return ONLY a valid JSON array of strings. No prose.
-
-Inputs
-------
-Original query:
-{root_query}
-
-Parent sub-question:
-{parent_query}
-
-Context snippets (may include notes/citations):
-{ctx}
-
-Existing siblings (avoid):
-{chr(10).join("- " + q for q in existing)}
-
-Previously asked in the tree (avoid):
-{prev}
-
-Budget (max items): {max_out}
-
-Output
-------
-A pure JSON array of strings.
-""".strip()
-
-    raw = llm_fn(prompt) or ""
+    raw = llm_fn(prompt_text) or ""
     cands = _rag_parse_json_list(str(raw))
 
     out, seen = [], set()
