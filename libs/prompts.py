@@ -2,9 +2,13 @@ import re
 from config import config
 configs = config.load_config()
 
-def prompt(prompt_name:str, prompt_param_dict: dict):
+def get_prompt(prompt_name:str, prompt_param_dict: dict):
     prompt = configs['prompts'][prompt_name]
+    output = prompt['template']
     
     for param in prompt['params']:
-        output = prompt['template'].replace("{" + param + "}", prompt_param_dict[param])
+        val = str(prompt_param_dict.get(param, "")) 
+        # initialize `output` outside the loop and update it inside the loop
+        output = output.replace("{" + param + "}", val)
+        
     return output

@@ -32,6 +32,7 @@ from langchain.retrievers import EnsembleRetriever
 from langchain.chains import RetrievalQA
 from libs.print import print_wide_line_message, pretty_print_docs,streamlit_add_msg,streamlit_add_line,streamlit_add_bold_heading
 from libs.regex import wrap_urls_in_metadata,wrap_urls_in_angle_brackets,replace_plus_in_url_paths,update_LatexData_downloaded_arxiv_articles_id_with_PDF_URL,detect_and_convert_tavily_ligo_public_urls,detect_and_convert_public_urls,hyperlink_dcc_urls
+from libs.prompts import get_prompt
 import uuid
 from langchain.prompts import PromptTemplate
 
@@ -479,29 +480,7 @@ def verify_and_filter_retrieved_docs_v2_parallel(user_query: str, docs: list[Doc
     llm = st.session_state.llm
 
     # Few-shot examples for LLM prompting
-    few_shot_examples = """
-    EXAMPLE 1:
-    CONTEXT: "The LIGO SRM has a seismic noise requirement of XXX m/√Hz at YYY Hz according to DOC: ABCD"
-    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
-    Possible relevant info found in CONTEXT.
-    ANALYSIS: Based on Document ABCD, The LIGO SRM needs the seismic noise to be below XXX m/√Hz at YYY Hz.
-    RATIONALE: The context mentions the SRM’s seismic noise requirement.
-
-    EXAMPLE 2:
-    CONTEXT: "With the injection of squeezed states, this LIGO detector demonstrated the best broadband sensitivity to gravitational waves ever achieved, with.
-    *Metadata:* {'source': 'https://www.nature.com/articles/nphoton.2013.177'}"
-    QUESTION: "What is the maximum about of squeezing observed by LIGO?"
-    Possible relevant info in the provided URL.
-    ANALYSIS: <CHECK_URL>
-    RATIONALE: The context mentions the about highest squeezing, but does not explicity quote the value. Likely to be found in the URL source.
-
-    EXAMPLE 3:
-    CONTEXT: "This document discusses PSL (Pre-Stabilized Laser) specifications ."
-    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
-    No relevant info is found in the CONTEXT.
-    ANALYSIS: <NIL>
-    RATIONALE: The context does not mention the SRM or its seismic noise requirement.
-    """
+    few_shot_examples_content = get_prompt("VERIFY_DOC_FEW_SHOTS", {})
 
     # Nested helper function to process a single document
     def _process_single_doc(doc, llm, idx=None, verbose=False):
@@ -511,47 +490,19 @@ def verify_and_filter_retrieved_docs_v2_parallel(user_query: str, docs: list[Doc
                 start_time = time.time()
             
             filename = doc.metadata.get('source_file') or doc.metadata.get('source') or "N/A"
+
+            prompt_text = get_prompt(
+                "VERIFY_DOC_RELEVANCE_template",
+                {
+                    "few_shot_examples": few_shot_examples_content,
+                    "filename": filename,
+                    "context_content": doc.page_content,
+                    "user_query": user_query
+                }
+            )
             
-            prompt = f"""
-            You are given a QUESTION and the CONTEXT from a single document. 
-            Determine if the CONTEXT contains relevant information that can help answer the QUESTION. 
-
-            If relevant information exists, respond with:
-            ANALYSIS: <relevant excerpt or summary from CONTEXT>
-            RATIONALE: <brief explanation of how the excerpt addresses the QUESTION>
-
-            If relevant information doesn't exists in the given text but is likely to be found in the metadata-source-URL, respond with:
-            ANALYSIS: <CHECK_URL>
-            RATIONALE: <brief explanation of how the why u think the data from the URL  could addresses the QUESTION>  
-
-            If you do NOT find any relevant info, respond with:
-            ANALYSIS: <NIL>
-            RATIONALE: <why you found it NIL>
-
-            IMPORTANT:
-            - Do not fabricate or assume details not in the context.
-            - If there's some partial mention, err on the side of including it.
-            - Keep your answer short and directly quoted or paraphrased from the CONTEXT.
-
-            FILENAME (if any): {filename}
-
-            Below are examples of the exact format:
-
-            {few_shot_examples}
-
-            Now handle the following:
-
-            CONTEXT:
-            {doc.page_content}
-
-            QUESTION:
-            {user_query}
-            """
-
             # Check Doc for relevancy
-            llm_output = llm(prompt).strip()
-
-
+            llm_output = llm(prompt_text).strip()
 
             if "<NIL>" not in llm_output :
                 
@@ -569,18 +520,14 @@ def verify_and_filter_retrieved_docs_v2_parallel(user_query: str, docs: list[Doc
                     new_doc = Document(page_content=doc.page_content + "\n-------------\n" + llm_output, metadata=doc.metadata)
 
                 
-                new_doc.page_content = llm(f'''
-                rephrase this text chunk into a standalone single paragraph such that it retains 
-                all the information useful in answering the query. Do not try to answer the query.
-                Include all the technical details including numbers, source info, equations etc 
-                present in the original text chunk. Do not repeat information. Do not expand any acronyms. 
-                Enclose short LaTex equations within $...$ (Single Dollar Signs) for inline math mode and more complex LaTex equations within $$...$$ (Double Dollar Signs) for block math mode.
-                Always show the Metadata Source (including file extension) within <>.   
-                Here is the query {user_query}. \n 
-                Here is the text chunk: {new_doc}
-                ''')
-
-
+                prompt_text = get_prompt(
+                    "REPHRASE_CHUNK_STANDALONE_template",
+                    {
+                        "user_query": user_query,
+                        "text_chunk": str(new_doc) 
+                    }
+                )
+                new_doc.page_content = llm(prompt_text)
                 
                 new_doc.page_content = wrap_urls_in_angle_brackets(new_doc.page_content)
                 try:
@@ -714,29 +661,7 @@ def verify_and_filter_retrieved_docs_v2_parallel_api_version(user_query: str, do
     llm = st.session_state.llm
 
     # Few-shot examples for LLM prompting
-    few_shot_examples = """
-    EXAMPLE 1:
-    CONTEXT: "The LIGO SRM has a seismic noise requirement of XXX m/√Hz at YYY Hz according to DOC: ABCD"
-    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
-    Possible relevant info found in CONTEXT.
-    ANALYSIS: Based on Document ABCD, The LIGO SRM needs the seismic noise to be below XXX m/√Hz at YYY Hz.
-    RATIONALE: The context mentions the SRM’s seismic noise requirement.
-
-    EXAMPLE 2:
-    CONTEXT: "With the injection of squeezed states, this LIGO detector demonstrated the best broadband sensitivity to gravitational waves ever achieved, with.
-    *Metadata:* {'source': 'https://www.nature.com/articles/nphoton.2013.177'}"
-    QUESTION: "What is the maximum about of squeezing observed by LIGO?"
-    Possible relevant info in the provided URL.
-    ANALYSIS: <CHECK_URL>
-    RATIONALE: The context mentions the about highest squeezing, but does not explicity quote the value. Likely to be found in the URL source.
-
-    EXAMPLE 3:
-    CONTEXT: "This document discusses PSL (Pre-Stabilized Laser) specifications ."
-    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
-    No relevant info is found in the CONTEXT.
-    ANALYSIS: <NIL>
-    RATIONALE: The context does not mention the SRM or its seismic noise requirement.
-    """
+    few_shot_examples_content = get_prompt("VERIFY_DOC_FEW_SHOTS", {})
 
     # Nested helper function to process a single document
     def _process_single_doc(doc, llm, idx=None, verbose=False):
@@ -747,47 +672,18 @@ def verify_and_filter_retrieved_docs_v2_parallel_api_version(user_query: str, do
             
             filename = doc.metadata.get('source_file') or doc.metadata.get('source') or "N/A"
             
-            prompt = f"""
-            You are given a QUESTION and the CONTEXT from a single document. 
-            Determine if the CONTEXT contains relevant information that can help answer the QUESTION. 
-
-            If relevant information exists, respond with:
-            ANALYSIS: <relevant excerpt or summary from CONTEXT>
-            RATIONALE: <brief explanation of how the excerpt addresses the QUESTION>
-
-            If relevant information doesn't exists in the given text but is likely to be found in the metadata-source-URL, respond with:
-            ANALYSIS: <CHECK_URL>
-            RATIONALE: <brief explanation of how the why u think the data from the URL  could addresses the QUESTION>  
-
-            If you do NOT find any relevant info, respond with:
-            ANALYSIS: <NIL>
-            RATIONALE: <why you found it NIL>
-
-            IMPORTANT:
-            - Do not fabricate or assume details not in the context.
-            - If there's some partial mention, err on the side of including it.
-            - Keep your answer short and directly quoted or paraphrased from the CONTEXT.
-
-            FILENAME (if any): {filename}
-
-            Below are examples of the exact format:
-
-            {few_shot_examples}
-
-            Now handle the following:
-
-            CONTEXT:
-            {doc.page_content}
-
-            QUESTION:
-            {user_query}
-            """
+            prompt_text = get_prompt(
+                "VERIFY_DOC_RELEVANCE_template",
+                {
+                    "few_shot_examples": few_shot_examples_content,
+                    "filename": filename,
+                    "context_content": doc.page_content,
+                    "user_query": user_query
+                }
+            )
 
             # Check Doc for relevancy
-            llm_output = llm(prompt).strip()
-
-
-                        
+            llm_output = llm(prompt_text).strip()
             
             if "<NIL>" not in llm_output :
                 
@@ -804,19 +700,14 @@ def verify_and_filter_retrieved_docs_v2_parallel_api_version(user_query: str, do
                     # Process Already Relevant Doc
                     new_doc = Document(page_content=doc.page_content + "\n-------------\n" + llm_output, metadata=doc.metadata)
 
-                
-                new_doc.page_content = llm(f'''
-                rephrase this text chunk into a standalone single paragraph such that it retains 
-                all the information useful in answering the query. Do not try to answer the query.
-                Include all the technical details including numbers, source info, equations etc 
-                present in the original text chunk. Do not repeat information. Do not expand any acronyms. 
-                Enclose short LaTex equations within $...$ (Single Dollar Signs) for inline math mode and more complex LaTex equations within $$...$$ (Double Dollar Signs) for block math mode.
-                Always show the Metadata Source (including file extension) within <>.   
-                Here is the query {user_query}. \n 
-                Here is the text chunk: {new_doc}
-                ''')
-
-
+                prompt_text = get_prompt(
+                    "REPHRASE_CHUNK_STANDALONE_template",
+                    {
+                        "user_query": user_query,
+                        "text_chunk": str(new_doc) 
+                    }
+                )
+                new_doc.page_content = llm(prompt_text)
                 
                 new_doc.page_content = wrap_urls_in_angle_brackets(new_doc.page_content)
                 try:
@@ -939,21 +830,7 @@ def verify_and_filter_retrieved_docs_v2(user_query: str, docs: list[Document]):
     """
 
     # A few-shot prompt section with explicit examples
-    few_shot_examples = """
-EXAMPLE 1:
-CONTEXT: "The LIGO SRM has a seismic noise requirement of XXX m/√Hz at YYY Hz according to DOC: ABCD"
-QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
-Possible relevant info found in CONTEXT.
-ANALYSIS: Based on Document ABCD, The LIGO SRM needs the seismic noise to be below XXX m/√Hz at YYY Hz.
-RATIONALE: The context mentions the SRM’s seismic noise requirement.
-
-EXAMPLE 2:
-CONTEXT: "This document discusses PSL (Pre-Stabilized Laser) specifications ."
-QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
-No relevant info is found in the CONTEXT.
-ANALYSIS: <NIL>
-RATIONALE: The context does not mention the SRM or its seismic noise requirement.
-"""
+    simple_few_shots = get_prompt("VERIFY_DOC_SIMPLE_FEW_SHOTS", {})
 
     filtered_retrieved_docs = []
     filtered_retrieved_docs_LLM_answers = []    
@@ -966,45 +843,22 @@ RATIONALE: The context does not mention the SRM or its seismic noise requirement
             or "N/A"
         )
 
-        # Construct the prompt: explanation + few-shot + actual doc/query
-        prompt = f"""
-You are given a QUESTION and the CONTEXT from a single document. 
-Determine if the CONTEXT contains relevant information that can help answer the QUESTION. 
-
-If relevant information exists (even partially), respond with:
-  ANALYSIS: <relevant excerpt or summary from CONTEXT>
-  RATIONALE: <brief explanation of how the excerpt addresses the QUESTION>
-
-If you do NOT find any relevant info, respond with:
-  ANALYSIS: <NIL>
-  RATIONALE: <why you found it NIL>
-
-IMPORTANT:
-- Do not fabricate or assume details not in the context.
-- If there's some partial mention, err on the side of including it.
-- Keep your answer short and directly quoted or paraphrased from the CONTEXT.
-
-FILENAME (if any): {filename}
-
-Below are examples of the exact format:
-
-{few_shot_examples}
-
-Now handle the following:
-
-CONTEXT:
-{doc.page_content}
-
-QUESTION:
-{user_query}
-"""
+        prompt_text = get_prompt(
+            "VERIFY_DOC_SIMPLE_RELEVANCE_template",
+            {
+                "filename": filename,
+                "few_shot_examples": simple_few_shots,
+                "context_content": doc.page_content,
+                "user_query": user_query
+            }
+        )
 
         # Call your LLM
         print_wide_line_message(doc)
         if st.session_state.useGroq:
-            llm_output = st.session_state.llm(prompt).strip()
+            llm_output = st.session_state.llm(prompt_text).strip()
         else:
-            llm_output = st.session_state.llm(prompt).strip()
+            llm_output = st.session_state.llm(prompt_text).strip()
         print("\n---------------------------------------\n")
 
         # If <NIL> appears anywhere in the LLM output, we discard this doc.

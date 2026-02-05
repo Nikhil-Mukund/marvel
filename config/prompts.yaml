@@ -1071,3 +1071,190 @@ GW_DETECTOR_STATUS_INTENT_template:
 
     USER_QUERY:
     {user_query}
+
+LLM_PLANNER_SUBQUERIES_template:
+  params:
+    - root_query
+    - parent_query
+    - context
+    - existing_siblings
+    - previously_asked
+    - max_out
+  template: |
+    You are a planning assistant for multi-hop scientific question answering.
+    Propose DISTINCT, TARGETED sub-questions that, if answered, would materially help to answer the user's
+    original query. Do not assume domain specifics (journals, subfields); infer from inputs.
+
+    REQUIREMENTS
+    1) DECOMPOSE if multiple named entities (people, projects, instruments, datasets, facilities, collaborations,
+       topics) are present. Ensure coverage ACROSS entities, not only joint phrasing.
+    2) DIVERSIFY FACETS: contributions/findings; methods/instrumentation; datasets/evidence; collaborators;
+       chronology (early vs recent); impact/validation/metrics; comparisons/contrasts; and one integrative
+       “synthesis” question if budget allows.
+    3) AVOID DUPLICATES (semantic paraphrases): Do NOT repeat anything listed under `Existing siblings` or
+       `Previously asked in the tree`.
+    4) OUTPUT FORMAT: return ONLY a valid JSON array of strings. No prose.
+
+    Inputs
+    ------
+    Original query:
+    {root_query}
+
+    Parent sub-question:
+    {parent_query}
+
+    Context snippets (may include notes/citations):
+    {context}
+
+    Existing siblings (avoid):
+    {existing_siblings}
+
+    Previously asked in the tree (avoid):
+    {previously_asked}
+
+    Budget (max items): {max_out}
+
+    Output
+    ------
+    A pure JSON array of strings.
+
+VERIFY_DOC_FEW_SHOTS:
+  params: []
+  template: |
+    EXAMPLE 1:
+    CONTEXT: "The LIGO SRM has a seismic noise requirement of XXX m/√Hz at YYY Hz according to DOC: ABCD"
+    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
+    Possible relevant info found in CONTEXT.
+    ANALYSIS: Based on Document ABCD, The LIGO SRM needs the seismic noise to be below XXX m/√Hz at YYY Hz.
+    RATIONALE: The context mentions the SRM's seismic noise requirement.
+
+    EXAMPLE 2:
+    CONTEXT: "With the injection of squeezed states, this LIGO detector demonstrated the best broadband sensitivity to gravitational waves ever achieved, with.
+    *Metadata:* {'source': 'https://www.nature.com/articles/nphoton.2013.177'}"
+    QUESTION: "What is the maximum about of squeezing observed by LIGO?"
+    Possible relevant info in the provided URL.
+    ANALYSIS: <CHECK_URL>
+    RATIONALE: The context mentions the about highest squeezing, but does not explicity quote the value. Likely to be found in the URL source.
+
+    EXAMPLE 3:
+    CONTEXT: "This document discusses PSL (Pre-Stabilized Laser) specifications ."
+    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
+    No relevant info is found in the CONTEXT.
+    ANALYSIS: <NIL>
+    RATIONALE: The context does not mention the SRM or its seismic noise requirement.
+
+VERIFY_DOC_RELEVANCE_template:
+  params:
+    - few_shot_examples
+    - filename
+    - context_content
+    - user_query
+  template: |
+    You are given a QUESTION and the CONTEXT from a single document. 
+    Determine if the CONTEXT contains relevant information that can help answer the QUESTION. 
+
+    If relevant information exists, respond with:
+    ANALYSIS: <relevant excerpt or summary from CONTEXT>
+    RATIONALE: <brief explanation of how the excerpt addresses the QUESTION>
+
+    If relevant information doesn't exists in the given text but is likely to be found in the metadata-source-URL, respond with:
+    ANALYSIS: <CHECK_URL>
+    RATIONALE: <brief explanation of how the why u think the data from the URL could addresses the QUESTION>  
+
+    If you do NOT find any relevant info, respond with:
+    ANALYSIS: <NIL>
+    RATIONALE: <why you found it NIL>
+
+    IMPORTANT:
+    - Do not fabricate or assume details not in the context.
+    - If there's some partial mention, err on the side of including it.
+    - Keep your answer short and directly quoted or paraphrased from the CONTEXT.
+
+    FILENAME (if any): {filename}
+
+    Below are examples of the exact format:
+
+    {few_shot_examples}
+
+    Now handle the following:
+
+    CONTEXT:
+    {context_content}
+
+    QUESTION:
+    {user_query}
+
+REPHRASE_CHUNK_STANDALONE_template:
+  params:
+    - user_query
+    - text_chunk
+  template: |
+    rephrase this text chunk into a standalone single paragraph such that it retains 
+    all the information useful in answering the query. Do not try to answer the query.
+    
+    Include all the technical details including numbers, source info, equations etc 
+    present in the original text chunk. Do not repeat information. Do not expand any acronyms. 
+    
+    Enclose short LaTex equations within $...$ (Single Dollar Signs) for inline math mode and more complex LaTex equations within $$...$$ (Double Dollar Signs) for block math mode.
+    
+    Always show the Metadata Source (including file extension) within <>.   
+    
+    Here is the query {user_query}. 
+     
+    Here is the text chunk: {text_chunk}
+
+# simpler few-shots for relevance check
+VERIFY_DOC_SIMPLE_FEW_SHOTS:
+  params: []
+  template: |
+    EXAMPLE 1:
+    CONTEXT: "The LIGO SRM has a seismic noise requirement of XXX m/√Hz at YYY Hz according to DOC: ABCD"
+    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
+    Possible relevant info found in CONTEXT.
+    ANALYSIS: Based on Document ABCD, The LIGO SRM needs the seismic noise to be below XXX m/√Hz at YYY Hz.
+    RATIONALE: The context mentions the SRM’s seismic noise requirement.
+
+    EXAMPLE 2:
+    CONTEXT: "This document discusses PSL (Pre-Stabilized Laser) specifications ."
+    QUESTION: "What is the seismic noise requirement for LIGO's SRM?"
+    No relevant info is found in the CONTEXT.
+    ANALYSIS: <NIL>
+    RATIONALE: The context does not mention the SRM or its seismic noise requirement.
+
+# simpler relevance check template
+VERIFY_DOC_SIMPLE_RELEVANCE_template:
+  params:
+    - filename
+    - few_shot_examples
+    - context_content
+    - user_query
+  template: |
+    You are given a QUESTION and the CONTEXT from a single document. 
+    Determine if the CONTEXT contains relevant information that can help answer the QUESTION. 
+
+    If relevant information exists (even partially), respond with:
+      ANALYSIS: <relevant excerpt or summary from CONTEXT>
+      RATIONALE: <brief explanation of how the excerpt addresses the QUESTION>
+
+    If you do NOT find any relevant info, respond with:
+      ANALYSIS: <NIL>
+      RATIONALE: <why you found it NIL>
+
+    IMPORTANT:
+    - Do not fabricate or assume details not in the context.
+    - If there's some partial mention, err on the side of including it.
+    - Keep your answer short and directly quoted or paraphrased from the CONTEXT.
+
+    FILENAME (if any): {filename}
+
+    Below are examples of the exact format:
+
+    {few_shot_examples}
+
+    Now handle the following:
+
+    CONTEXT:
+    {context_content}
+
+    QUESTION:
+    {user_query}
