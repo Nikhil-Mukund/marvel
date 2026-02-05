@@ -3,9 +3,9 @@ message: "If you use this software, please cite it as below."
 
 title: "MARVEL: Multi-Agent Research Validator & Enabler using LLMs"
 version: "v1.0.0"
-date-released: 2025-01-01
+date-released: 2026-01-05
 
-# Version-specific DOI (recommended as the primary DOI for reproducible citation)
+# Primary DOI = version-specific Zenodo DOI (best for reproducibility)
 doi: 10.5281/zenodo.18156827
 
 authors:
@@ -14,23 +14,37 @@ authors:
     affiliation: MIT Kavli Institute for Astrophysics and Space Research
     orcid: "https://orcid.org/0000-0002-8666-9156"
 
-# Source code repository
 repository-code: "https://github.com/Nikhil-Mukund/marvel"
-# URL used by GitHub's citation rendering
 url: "https://github.com/Nikhil-Mukund/marvel"
 
-# Additional identifiers 
 identifiers:
   - type: doi
     value: 10.5281/zenodo.18156826
-    description: "Concept DOI (This DOI represents all versions of MARVEL on Zenodo, and will always resolve to the latest one.)"
+    description: "Concept DOI (all versions of MARVEL on Zenodo)"
 
 license: Apache-2.0
 
 keywords:
-  - scientific assistants
-  - astrophysics
-  - gravitational wave detectors
-  - LIGO
   - large language models
   - retrieval-augmented generation
+  - scientific assistants
+  - gravitational wave detectors
+  - LIGO
+
+preferred-citation:
+  type: article
+  title: "MARVEL: A Multi-Agent Research Validator and Enabler using LLMs"
+  authors:
+    - family-names: Mukund
+      given-names: Nikhil
+    - family-names: Luo
+      given-names: Yifang
+    - family-names: Zhang
+      given-names: Fan
+    - family-names: Katsavounidis
+      given-names: Erik
+    - family-names: Barsotti
+      given-names: Lisa
+  journal: "arXiv"
+  year: 2026
+  url: "https://arxiv.org/abs/2601.03436"
